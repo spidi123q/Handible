@@ -6,12 +6,14 @@
 #include<opencv2/highgui/highgui.hpp>
 #include<opencv2/imgproc/imgproc.hpp>
 #include<opencv2/ml/ml.hpp>
+#include<stdlib.h>
 #include <cv.h>
 #include<ml.h>
 #include<android/log.h>
 #include<string.h>
 
 #include<iostream>
+#include<fstream>
 #include<vector>
 
 

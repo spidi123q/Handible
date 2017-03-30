@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -24,6 +25,7 @@ import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
@@ -32,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int PICK_IMAGE_REQUEST=10;
     Button loadImage,cvtImage;
     ImageView imageView;
+    TextView itt;
     Mat mRgba, mGray;
 
     static {
@@ -56,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        itt=(TextView)findViewById(R.id.textView);
         imageView=(ImageView)findViewById(R.id.imageView);
         cvtImage=(Button)findViewById(R.id.cvt_button);
         cvtImage.setOnClickListener(new View.OnClickListener() {
@@ -81,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -121,7 +125,10 @@ public class MainActivity extends AppCompatActivity {
                 File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "MyCameraApp");
                 String str="";
                 OpencvNativeClass.testInput(mat.getNativeObjAddr(),(mediaStorageDir.getPath()+File.separator));
+                str=readStrFromFile(mediaStorageDir.getPath()+File.separator+"data.txt");
                 System.out.println("Text : "+str);
+                str=new StringBuffer(str).reverse().toString();
+                itt.setText(str.toString());
                 Utils.matToBitmap(mat,bitmap);
                 imageView.setImageBitmap(bitmap);
 
@@ -129,6 +136,36 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+    }
+
+    private String readStrFromFile(String path) {
+        String result = "";
+        File file = new File(path);
+        if (file.exists()) {
+            //byte[] buffer = new byte[(int) new File(filePath).length()];
+            FileInputStream fis = null;
+            try {
+                //f = new BufferedInputStream(new FileInputStream(filePath));
+                //f.read(buffer);
+
+                fis = new FileInputStream(file);
+                char current;
+                while (fis.available() > 0) {
+                    current = (char) fis.read();
+                    result = result + String.valueOf(current);
+                }
+            } catch (Exception e) {
+                Log.d("TourGuide", e.toString());
+            } finally {
+                if (fis != null)
+                    try {
+                        fis.close();
+                    } catch (IOException ignored) {
+                    }
+            }
+            //result = new String(buffer);
+        }
+        return result;
     }
     protected void onResume() {
         super.onResume();

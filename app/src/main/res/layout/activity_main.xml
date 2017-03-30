@@ -11,29 +11,37 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="lukeentertainment.example.MainActivity">
 
-    <Button
-        android:text="load"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="22dp"
-        android:id="@+id/load_image" />
-
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:srcCompat="@mipmap/ic_launcher"
         android:layout_below="@+id/load_image"
         android:layout_centerHorizontal="true"
-        android:id="@+id/imageView" />
+        android:id="@+id/imageView"
+        android:layout_above="@+id/textView" />
 
     <Button
-        android:text="cvt"
+        android:text="test"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/load_image"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="19dp"
-        android:id="@+id/cvt_button" />
+        android:id="@+id/cvt_button"
+
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:text="train"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/load_image"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="Text from image is"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>

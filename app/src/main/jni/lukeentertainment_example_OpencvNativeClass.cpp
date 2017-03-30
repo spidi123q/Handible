@@ -3,6 +3,30 @@ const int MIN_CONTOUR_AREA = 100;
 
 const int RESIZED_IMAGE_WIDTH = 20;
 const int RESIZED_IMAGE_HEIGHT = 30;
+std::string str="";
+std::string strFinalString="";
+
+  class ContourWithData {
+  public:
+      // member variables ///////////////////////////////////////////////////////////////////////////
+      std::vector<cv::Point> ptContour;           // contour
+      cv::Rect boundingRect;                      // bounding rect for contour
+      float fltArea;                              // area of contour
+
+      ///////////////////////////////////////////////////////////////////////////////////////////////
+      bool checkIfContourIsValid() {                              // obviously in a production grade program
+          if (fltArea < MIN_CONTOUR_AREA) return false;           // we would have a much more robust function for
+          return true;                                            // identifying if a contour is valid !!
+      }
+
+      ///////////////////////////////////////////////////////////////////////////////////////////////
+      static bool sortByBoundingRectXPosition(const ContourWithData& cwdLeft, const ContourWithData& cwdRight) {      // this function allows us to sort
+          return(cwdLeft.boundingRect.x > cwdRight.boundingRect.x);                                                   // the contours from left to right
+      }
+
+  };
+
+
 JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_convertGray
   (JNIEnv *env, jclass, jlong addrRgba,jstring path){
     cv::Mat& mRgb=*(cv::Mat*)addrRgba;
@@ -19,6 +43,9 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_convertG
     strcat(classPath,"classifications.xml");
     strcat(imagePath,"images.xml");
    __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG"," %s\n",classPath);
+
+   std::vector<ContourWithData> allContoursWithData;           // declare empty vectors,
+       std::vector<ContourWithData> validContoursWithData;
 
      cv::Mat imgTrainingNumbers;         // input image
      cv::Mat imgGrayscale;               //
@@ -39,7 +66,9 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_convertG
      std::vector<int> intValidChars = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                                         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
                                         'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
-                                        'U', 'V', 'W', 'X', 'Y', 'Z'};
+                                        'U', 'V', 'W', 'X', 'Y', 'Z',
+                                       'a','b','c','d','e','f','g','h','i','j','k','l','m',
+                                        'n','o','p','q','r','s','t','u','v','w','x','y','z'};
 
         imgTrainingNumbers =(cv::Mat) mRgb;         // read in training numbers image
 
@@ -75,22 +104,43 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_convertG
             cv::CHAIN_APPROX_SIMPLE);               // compress horizontal, vertical, and diagonal segments and leave only their end points
 
         __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG"," length: %d\n",ptContours.size());
-        for (int i = 0; i < ptContours.size(); i++) {
+        for (int i = 0; i < ptContours.size(); i++) {               // for each contour
+                ContourWithData contourWithData;                                                    // instantiate a contour with data object
+                contourWithData.ptContour = ptContours[i];                                          // assign contour to contour with data
+                contourWithData.boundingRect = cv::boundingRect(contourWithData.ptContour);         // get the bounding rect
+                contourWithData.fltArea = cv::contourArea(contourWithData.ptContour);               // calculate the contour area
+                allContoursWithData.push_back(contourWithData);                                     // add contour with data object to list of all contours with data
+            }
+
+            for (int i = 0; i < allContoursWithData.size(); i++) {                      // for all contours
+                if (allContoursWithData[i].checkIfContourIsValid()) {                   // check if valid
+                    validContoursWithData.push_back(allContoursWithData[i]);            // if so, append to valid contour list
+                }
+            }
+
+        for (int i = 0; i < validContoursWithData.size(); i++) {
             // for each contour
-            if (cv::contourArea(ptContours[i]) > MIN_CONTOUR_AREA) {                // if contour is big enough to consider
-                cv::Rect boundingRect = cv::boundingRect(ptContours[i]);                // get the bounding rect
-               cv::rectangle(imgTrainingNumbers, boundingRect, cv::Scalar(255,0,0), 2);      // draw red rectangle around each contour as we ask user for input
+            if (true) {                // if contour is big enough to consider
+                cv::Rect boundingRect = validContoursWithData[i].boundingRect;                // get the bounding rect
+                cv::rectangle(imgTrainingNumbers, boundingRect, cv::Scalar(255,0,0), 2);      // draw red rectangle around each contour as we ask user for input
 
                 cv::Mat matROI = imgThresh(boundingRect);           // get ROI image of bounding rect
                 cv::Mat matROIResized;
                 cv::resize(matROI, matROIResized, cv::Size(RESIZED_IMAGE_WIDTH, RESIZED_IMAGE_HEIGHT));     // resize image, this will be more consistent for recognition and storage
-
-                int w=i%43;
-
-                int intChar='9'-i;
+                int intChar=0;
+                if(i>=10&&i<36)
+                {
+                    intChar=(i+7)+'0';
+                }
+                else if(i>=36)
+                {
+                    intChar=(i+7+6)+'0';
+                }
+                else
+                    intChar=i+'0';
                 if (std::find(intValidChars.begin(), intValidChars.end(), intChar) != intValidChars.end()) {     // else if the char is in the list of chars we are looking for . . .
 
-                    __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG"," char : %c\n",char(w+'0'));
+                    __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG"," char : %c\n",char(intChar));
                     matClassificationInts.push_back(intChar);       // append classification char to integer list of chars
 
                     cv::Mat matImageFloat;                          // now add the training image (some conversion is necessary first) . . .
@@ -135,29 +185,6 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_convertG
     return (jint)1;
   }
 
-  class ContourWithData {
-  public:
-      // member variables ///////////////////////////////////////////////////////////////////////////
-      std::vector<cv::Point> ptContour;           // contour
-      cv::Rect boundingRect;                      // bounding rect for contour
-      float fltArea;                              // area of contour
-
-      ///////////////////////////////////////////////////////////////////////////////////////////////
-      bool checkIfContourIsValid() {                              // obviously in a production grade program
-          if (fltArea < MIN_CONTOUR_AREA) return false;           // we would have a much more robust function for
-          return true;                                            // identifying if a contour is valid !!
-      }
-
-      ///////////////////////////////////////////////////////////////////////////////////////////////
-      static bool sortByBoundingRectXPosition(const ContourWithData& cwdLeft, const ContourWithData& cwdRight) {      // this function allows us to sort
-          return(cwdLeft.boundingRect.x < cwdRight.boundingRect.x);                                                   // the contours from left to right
-      }
-
-  };
-
-
-
-
 
   JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_testInput
     (JNIEnv *env, jclass,jlong addrRgba,jstring path){
@@ -167,19 +194,22 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_convertG
     const jsize len = env->GetStringUTFLength(path);
        const char* strChars = env->GetStringUTFChars(path, (jboolean *)0);
        std::string Result(strChars, len);
-       char classPath[100],imagePath[100];
+       char classPath[100],imagePath[100],dataPath[100];
 
        strcpy(classPath,strChars);
        strcpy(imagePath,strChars);
+       strcpy(dataPath,strChars);
 
        env->ReleaseStringUTFChars(path, strChars);
         strcat(classPath,"classifications.xml");
         strcat(imagePath,"images.xml");
+        strcat(dataPath,"data.txt");
 
 
 
 std::vector<ContourWithData> allContoursWithData;           // declare empty vectors,
     std::vector<ContourWithData> validContoursWithData;         // we will fill these shortly
+
 
             // read in training classifications ///////////////////////////////////////////////////
 
@@ -207,7 +237,8 @@ std::vector<ContourWithData> allContoursWithData;           // declare empty vec
     }
 
     fsTrainingImages["images"] >> matTrainingImages;           // read images section into Mat training images variable
-    fsTrainingImages.release();                                                 // close the traning images file
+    fsTrainingImages.release();
+                                                // close the traning images file
     cv::KNearest kNearest=cv::KNearest();
     kNearest.train(matTrainingImages,matClassificationFloats);
 
@@ -256,20 +287,41 @@ std::vector<ContourWithData> allContoursWithData;           // declare empty vec
         contourWithData.ptContour = ptContours[i];                                          // assign contour to contour with data
         contourWithData.boundingRect = cv::boundingRect(contourWithData.ptContour);         // get the bounding rect
         contourWithData.fltArea = cv::contourArea(contourWithData.ptContour);               // calculate the contour area
-        allContoursWithData.push_back(contourWithData);                                     // add contour with data object to list of all contours with data
+        if(contourWithData.fltArea >MIN_CONTOUR_AREA)
+            validContoursWithData.push_back(contourWithData);                                     // add contour with data object to list of all contours with data
+
+    }
+    strFinalString="";
+    string seperator="";
+
+    for(int i=0,j=0;i<validContoursWithData.size();j++)
+    {
+         seperator.append("x");
+         if((validContoursWithData[j+1].boundingRect.y+validContoursWithData[j+1].boundingRect.height)<validContoursWithData[j].boundingRect.y)
+         {   std::sort(validContoursWithData.begin()+i, validContoursWithData.begin()+j+1, ContourWithData::sortByBoundingRectXPosition);
+            i=j+1;
+            seperator.append("\n");
+         }else if(j==(validContoursWithData.size()-1)){
+            std::sort(validContoursWithData.begin()+i, validContoursWithData.begin()+j+1, ContourWithData::sortByBoundingRectXPosition);
+
+            break;
+         }
+
+    }
+    int arrPos[1000];
+
+    for(int j=0;j<validContoursWithData.size()-1;j++)
+    {
+        int diff=abs((validContoursWithData[j+1].boundingRect.x+validContoursWithData[j+1].boundingRect.width)-validContoursWithData[j].boundingRect.x);
+        arrPos[j]=diff;
+        __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG","j : %d j+1 : %d diff : %d\n",validContoursWithData[j].boundingRect.x,(validContoursWithData[j+1].boundingRect.x+validContoursWithData[j+1].boundingRect.width),diff);         // show error message
+
+
     }
 
-    for (int i = 0; i < allContoursWithData.size(); i++) {                      // for all contours
-        if (allContoursWithData[i].checkIfContourIsValid()) {                   // check if valid
-            validContoursWithData.push_back(allContoursWithData[i]);            // if so, append to valid contour list
-        }
-    }
-            // sort contours from left to right
-    //std::sort(validContoursWithData.begin(), validContoursWithData.end(), ContourWithData::sortByBoundingRectXPosition);
-    std::string strFinalString;         // declare final string, this will have the final number sequence by the end of the program
-
-
-    for (int i = 0; i < validContoursWithData.size(); i++) {            // for each contour
+    strFinalString="";
+    str="";
+    for (int i = 0,j=0; i < validContoursWithData.size(); i++) {            // for each contour
 
                                                                 // draw a green rect around the current char
         cv::rectangle(matTestingNumbers,                            // draw rectangle on original image
@@ -287,14 +339,31 @@ std::vector<ContourWithData> allContoursWithData;           // declare empty vec
 
 
         float fltCurrentChar =kNearest.find_nearest(matROIFloat.reshape(1,1),1);
+       //__android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG","final string %c",char(int(fltCurrentChar)));
 
-         __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG","final string %c",char(int(fltCurrentChar)));
         strFinalString = strFinalString + char(int(fltCurrentChar));        // append current char to full string
+         if((validContoursWithData[i+1].boundingRect.y+validContoursWithData[i+1].boundingRect.height)<validContoursWithData[i].boundingRect.y)
+          {   j=i+1;
+              strFinalString = strFinalString + "\n";
+          }else if(i==(validContoursWithData.size()-1)){
+              std::sort(validContoursWithData.begin()+j, validContoursWithData.begin()+i+1, ContourWithData::sortByBoundingRectXPosition);
+              break;
+          }
+
+        if(arrPos[i]>10)
+        {
+            strFinalString = strFinalString +" ";
+
+         }
 
     }
 
+      std::ofstream out(dataPath,std::ios::out);
+            out << strFinalString.c_str();
+           // out<<seperator.c_str();
+            out.close();
 
-    mRgb=matTestingNumbers;     // show input image with green boxes drawn around found digits
+   mRgb=matTestingNumbers;     // show input image with green boxes drawn around found digits
     return 1;
     }
 
