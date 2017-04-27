@@ -5,8 +5,11 @@ package lukeentertainment.example;
  */
 
 public class OpencvNativeClass {
-    public native static int convertGray(long matAddrRgba,String path);
+    public native static int train(long matAddrRgba,String path,int option);
     public native static int testInput(long matAddrRgba,String path);
-
+    public native static int trainIndi(long matAddrRgba,String path,int Unicodevalue);
+    public native static int processImage(long matAddrRgba);
+    public native static int rotateImage(long matAddrRgba,int angle);
+    
 
 }

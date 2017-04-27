@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <!-- "Mark Favorite", should appear as action button if possible -->
+    <item
+        android:id="@+id/action_favorite"
+        android:icon="@drawable/plus"
+        android:title="@string/app_name"
+        android:enabled="true"
+        android:visible="true"
+        android:checkable="false"
+        android:checked="false"
+        android:showAsAction="always" />
+
+</menu>

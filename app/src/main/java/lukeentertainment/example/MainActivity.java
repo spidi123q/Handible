@@ -1,18 +1,31 @@
 package lukeentertainment.example;
 
+import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Path;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -22,19 +35,33 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int PICK_IMAGE_REQUEST_FOR_TRAIN = 25 ;
     private static String TAG = "MaintActivity";
     private static final int PICK_IMAGE_REQUEST=10;
-    Button loadImage,cvtImage;
+
+    DatabaseOperations db;
+    Button loadImage,cvtImage,aditiveLearn;
+    FloatingActionButton fab,trainFab,trainAppendFab;
     ImageView imageView;
     TextView itt;
+    int trainAppendTrue=0;
     Mat mRgba, mGray;
 
     static {
@@ -55,31 +82,79 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    ListView lyProduct;
+    ProductListAdapter adapter;
+    List<Product> mProductList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        itt=(TextView)findViewById(R.id.textView);
-        imageView=(ImageView)findViewById(R.id.imageView);
-        cvtImage=(Button)findViewById(R.id.cvt_button);
-        cvtImage.setOnClickListener(new View.OnClickListener() {
+        setContentView(R.layout.temp);
+        db=new DatabaseOperations(getApplicationContext());
+        lyProduct=(ListView)findViewById(R.id.list_view);
+        refreshList();
+        fab=(FloatingActionButton)findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setType("image/*");
-                intent.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST+1);
+                LayoutInflater li = LayoutInflater.from(getApplicationContext());
+                View promptsView = li.inflate(R.layout.project_prompt, null);
+
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+
+                alertDialogBuilder.setView(promptsView);
+
+                final EditText userInput = (EditText) promptsView
+                        .findViewById(R.id.new_proj_edittext);
+                alertDialogBuilder
+                        .setCancelable(false)
+                        .setPositiveButton("Done",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog,int id) {
+
+                                        if (!userInput.getText().toString().isEmpty()) {
+                                            String name=userInput.getText().toString();
+                                            DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm:ss");
+                                            String date = df.format(Calendar.getInstance().getTime());
+                                            db.addRowProjectList(name,date,0,"null");
+                                            Toast.makeText(getBaseContext(), "Registerd Successfully", Toast.LENGTH_SHORT).show();
+                                            refreshList();
+                                        }
+
+                                    }
+                                })
+                        .setNegativeButton("Cancel",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        dialog.cancel();
+                                    }
+                                });
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
 
             }
         });
-        loadImage=(Button)findViewById(R.id.load_image);
-        loadImage.setOnClickListener(new View.OnClickListener() {
+
+        trainFab=(FloatingActionButton)findViewById(R.id.train_fab);
+        trainFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                trainAppendTrue=0;
                 Intent intent = new Intent();
                 intent.setType("image/*");
                 intent.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST_FOR_TRAIN);
+            }
+        });
+        trainAppendFab=(FloatingActionButton)findViewById(R.id.trainAppend);
+        trainAppendFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                trainAppendTrue=1;
+                Intent intent = new Intent();
+                intent.setType("image/*");
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST_FOR_TRAIN);
             }
         });
 
@@ -88,66 +163,24 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+        if (requestCode == PICK_IMAGE_REQUEST_FOR_TRAIN && resultCode == RESULT_OK && data != null && data.getData() != null) {
 
             Uri uri = data.getData();
-            try {
-                Bitmap bitmap = null;
-                bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-                Mat mat=new Mat(bitmap.getWidth(),bitmap.getHeight(),CvType.CV_8UC4);
-                Utils.bitmapToMat(bitmap,mat);
-                imageView.setImageBitmap(bitmap);
-                File mediaStorageDir = new File(
-                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "MyCameraApp");
-                if (!mediaStorageDir.exists()) {
-                    if (!mediaStorageDir.mkdirs()) {
-                        Log.d("MyCameraApp", "failed to create directory");
-                    }
-                }
-
-                OpencvNativeClass.convertGray(mat.getNativeObjAddr(),(mediaStorageDir.getPath()+File.separator));
-                Utils.matToBitmap(mat,bitmap);
-                imageView.setImageBitmap(bitmap);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            Intent i=new Intent(MainActivity.this,TrainActivity.class);
+            i.putExtra("ImageURI",uri);
+            i.putExtra("trainoption",trainAppendTrue);
+            startActivity(i);
         }
-        if (requestCode == (PICK_IMAGE_REQUEST+1) && resultCode == RESULT_OK && data != null && data.getData() != null) {
 
-            Uri uri = data.getData();
-            try {
-                Bitmap bitmap = null;
-                bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-                Mat mat=new Mat(bitmap.getWidth(),bitmap.getHeight(),CvType.CV_8UC4);
-                Utils.bitmapToMat(bitmap,mat);
-                imageView.setImageBitmap(bitmap);
-                File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "MyCameraApp");
-                String str="";
-                OpencvNativeClass.testInput(mat.getNativeObjAddr(),(mediaStorageDir.getPath()+File.separator));
-                str=readStrFromFile(mediaStorageDir.getPath()+File.separator+"data.txt");
-                System.out.println("Text : "+str);
-                str=new StringBuffer(str).reverse().toString();
-                itt.setText(str.toString());
-                Utils.matToBitmap(mat,bitmap);
-                imageView.setImageBitmap(bitmap);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     private String readStrFromFile(String path) {
         String result = "";
         File file = new File(path);
         if (file.exists()) {
-            //byte[] buffer = new byte[(int) new File(filePath).length()];
+
             FileInputStream fis = null;
             try {
-                //f = new BufferedInputStream(new FileInputStream(filePath));
-                //f.read(buffer);
-
                 fis = new FileInputStream(file);
                 char current;
                 while (fis.available() > 0) {
@@ -177,4 +210,60 @@ public class MainActivity extends AppCompatActivity {
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_9, this, mLoaderCallback);
         }
     }
+    private void refreshList()
+    {
+        mProductList=new ArrayList<>();
+        Cursor CR=db.getAlldata();
+        if(CR.moveToFirst())
+        {
+            do{
+                String name=CR.getString(1);
+                int id=CR.getInt(0);
+                String date=CR.getString(2);
+                int items=CR.getInt(3);
+                String path=CR.getString(4);
+                mProductList.add(new Product(name,id,date,items,path));
+
+            }while(CR.moveToNext());
+        }
+        else
+        {
+            Toast.makeText(getApplicationContext(),"Nothing in database",Toast.LENGTH_SHORT).show();
+        }
+        adapter=new ProductListAdapter(this,mProductList);
+        lyProduct.setAdapter(adapter);
+        lyProduct.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+
+                Cursor CR=db.getAlldata();
+                CR.moveToPosition(position);
+                Intent i=new Intent(MainActivity.this,PreprocessingActivity.class);
+                i.putExtra("position",position);
+                startActivity(i);
+
+
+            }
+        });
+        lyProduct.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                Cursor CR=db.getAlldata();
+                CR.moveToPosition(position);
+                int projid=CR.getInt(0);
+                db.deleteFromProjectList("DELETE FROM project_list WHERE Project_id = "+projid+";");
+                db.deleteFromProjectList("DELETE FROM Content_list WHERE Parent_id = "+projid+";");
+                Toast.makeText(getApplicationContext(),"deleteed" +id,Toast.LENGTH_SHORT).show();
+                refreshList();
+
+                return true;
+            }
+        });
+
+
+    }
+
+
+
 }
