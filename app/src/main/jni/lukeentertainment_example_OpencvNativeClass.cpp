@@ -1,5 +1,5 @@
 #include <lukeentertainment_example_OpencvNativeClass.h>
-const int MIN_CONTOUR_AREA = 100;
+const int MIN_CONTOUR_AREA = 50;
 
 const int RESIZED_IMAGE_WIDTH = 20;
 const int RESIZED_IMAGE_HEIGHT = 30;
@@ -23,12 +23,15 @@ std::string strFinalString="";
       static bool sortByBoundingRectXPosition(const ContourWithData& cwdLeft, const ContourWithData& cwdRight) {      // this function allows us to sort
           return(cwdLeft.boundingRect.x > cwdRight.boundingRect.x);                                                   // the contours from left to right
       }
+      static bool sortByBoundingRectYPosition(const ContourWithData& cwdTop, const ContourWithData& cwdBot) {      // this function allows us to sort
+           return(cwdTop.boundingRect.y > cwdBot.boundingRect.y);                                                   // the contours from left to right
+      }
 
   };
 
 
-JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_convertGray
-  (JNIEnv *env, jclass, jlong addrRgba,jstring path){
+JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_train
+  (JNIEnv *env, jclass, jlong addrRgba,jstring path,jint option){
     cv::Mat& mRgb=*(cv::Mat*)addrRgba;
 
    const jsize len = env->GetStringUTFLength(path);
@@ -51,7 +54,8 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_convertG
      cv::Mat imgGrayscale;               //
      cv::Mat imgBlurred;                 // declare various images
      cv::Mat imgThresh;                  //
-     cv::Mat imgThreshCopy;              //
+     cv::Mat imgThreshCopy;
+     cv::Mat imgCanny;
 
     std:: vector<std::vector<cv::Point> > ptContours;        // declare contours vector
      std::vector<cv::Vec4i> v4iHierarchy;                    // declare contours hierarchy
@@ -78,23 +82,10 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_convertG
         }
         cv::cvtColor(imgTrainingNumbers, imgGrayscale, CV_RGB2GRAY);        // convert to grayscale
 
-        cv::GaussianBlur(imgGrayscale,              // input image
-            imgBlurred,                             // output image
-            cv::Size(5, 5),                         // smoothing window width and height in pixels
-            0);                                     // sigma value, determines how much the image will be blurred, zero makes function choose the sigma value
+        cv::GaussianBlur(imgGrayscale,imgBlurred,cv::Size(5,5),0);
+        cv::threshold(imgBlurred,imgThresh, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);                           // constant subtracted from the mean or weighted mean
 
-                                                    // filter image from grayscale to black and white
-       cv::adaptiveThreshold(imgBlurred,           // input image
-            imgThresh,                              // output image
-            255,                                    // make pixels that pass the threshold full white
-            cv::ADAPTIVE_THRESH_GAUSSIAN_C,         // use gaussian rather than mean, seems to give better results
-            cv::THRESH_BINARY_INV,                  // invert so foreground will be white, background will be black
-            11,                                     // size of a pixel neighborhood used to calculate threshold value
-            2);                                     // constant subtracted from the mean or weighted mean
-
-              // show threshold image for reference
-
-        imgThreshCopy = imgThresh.clone();          // make a copy of the thresh image, this in necessary b/c findContours modifies the image
+       imgThreshCopy = imgThresh.clone();          // make a copy of the thresh image, this in necessary b/c findContours modifies the image
 
 
         cv::findContours(imgThreshCopy,             // input image, make sure to use a copy since the function will modify this image in the course of finding contours
@@ -109,15 +100,21 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_convertG
                 contourWithData.ptContour = ptContours[i];                                          // assign contour to contour with data
                 contourWithData.boundingRect = cv::boundingRect(contourWithData.ptContour);         // get the bounding rect
                 contourWithData.fltArea = cv::contourArea(contourWithData.ptContour);               // calculate the contour area
-                allContoursWithData.push_back(contourWithData);                                     // add contour with data object to list of all contours with data
+                if(contourWithData.fltArea >MIN_CONTOUR_AREA)
+                     validContoursWithData.push_back(contourWithData);                                   // add contour with data object to list of all contours with data
             }
 
-            for (int i = 0; i < allContoursWithData.size(); i++) {                      // for all contours
-                if (allContoursWithData[i].checkIfContourIsValid()) {                   // check if valid
-                    validContoursWithData.push_back(allContoursWithData[i]);            // if so, append to valid contour list
-                }
-            }
 
+        if(option==1)
+        {
+            cv::FileStorage fsClassifications(classPath, cv::FileStorage::READ);        // open the classifications file
+            fsClassifications["classifications"] >> matClassificationInts;      // read classifications section into Mat classifications variable
+            fsClassifications.release();
+
+            cv::FileStorage fsTrainingImages(imagePath, cv::FileStorage::READ);          // open the training images file
+            fsTrainingImages["images"] >> matTrainingImages;           // read images section into Mat training images variable
+            fsTrainingImages.release();
+        }
         for (int i = 0; i < validContoursWithData.size(); i++) {
             // for each contour
             if (true) {                // if contour is big enough to consider
@@ -138,7 +135,7 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_convertG
                 }
                 else
                     intChar=i+'0';
-                if (std::find(intValidChars.begin(), intValidChars.end(), intChar) != intValidChars.end()) {     // else if the char is in the list of chars we are looking for . . .
+                if (true) {     // else if the char is in the list of chars we are looking for . . .
 
                     __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG"," char : %c\n",char(intChar));
                     matClassificationInts.push_back(intChar);       // append classification char to integer list of chars
@@ -182,6 +179,7 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_convertG
 
         fsTrainingImages << "images" << matTrainingImages;         // write training images into images section of images file
     fsTrainingImages.release();
+    mRgb=imgTrainingNumbers;
     return (jint)1;
   }
 
@@ -205,13 +203,8 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_convertG
         strcat(imagePath,"images.xml");
         strcat(dataPath,"data.txt");
 
-
-
 std::vector<ContourWithData> allContoursWithData;           // declare empty vectors,
     std::vector<ContourWithData> validContoursWithData;         // we will fill these shortly
-
-
-            // read in training classifications ///////////////////////////////////////////////////
 
     cv::Mat matClassificationFloats;      // we will read the classification numbers into this variable as though it is a vector
 
@@ -224,8 +217,6 @@ std::vector<ContourWithData> allContoursWithData;           // declare empty vec
 
     fsClassifications["classifications"] >> matClassificationFloats;      // read classifications section into Mat classifications variable
     fsClassifications.release();                                        // close the classifications file
-
-            // read in training images ////////////////////////////////////////////////////////////
 
     cv::Mat matTrainingImages;         // we will read multiple images into this single image variable as though it is a vector
 
@@ -250,37 +241,20 @@ std::vector<ContourWithData> allContoursWithData;           // declare empty vec
     }
 
     cv::Mat matGrayscale;           //
+    cv::Mat matCanny;
     cv::Mat matBlurred;             // declare more image variables
     cv::Mat matThresh;              //
+    cv::Mat erosionMat;
     cv::Mat matThreshCopy;          //
-
-    cv::cvtColor(matTestingNumbers, matGrayscale, CV_RGB2GRAY);         // convert to grayscale
-
-                                            // blur
-    cv::GaussianBlur(matGrayscale,              // input image
-                     matBlurred,                // output image
-                     cv::Size(5, 5),            // smoothing window width and height in pixels
-                     0);                        // sigma value, determines how much the image will be blurred, zero makes function choose the sigma value
-
-                                            // filter image from grayscale to black and white
-    cv::adaptiveThreshold(matBlurred,                           // input image
-                          matThresh,                            // output image
-                          255,                                  // make pixels that pass the threshold full white
-                          cv::ADAPTIVE_THRESH_GAUSSIAN_C,       // use gaussian rather than mean, seems to give better results
-                          cv::THRESH_BINARY_INV,                // invert so foreground will be white, background will be black
-                          11,                                   // size of a pixel neighborhood used to calculate threshold value
-                          2);                                   // constant subtracted from the mean or weighted mean
-
+    cv::cvtColor(matTestingNumbers,matThresh, CV_RGB2GRAY);
     matThreshCopy = matThresh.clone();              // make a copy of the thresh image, this in necessary b/c findContours modifies the image
-
     std::vector<std::vector<cv::Point> > ptContours;        // declare a vector for the contours
     std::vector<cv::Vec4i> v4iHierarchy;                    // declare a vector for the hierarchy (we won't use this in this program but this may be helpful for reference)
-
     cv::findContours(matThreshCopy,             // input image, make sure to use a copy since the function will modify this image in the course of finding contours
         ptContours,                             // output contours
         v4iHierarchy,                           // output hierarchy
-        cv::RETR_EXTERNAL,                      // retrieve the outermost contours only
-        cv::CHAIN_APPROX_SIMPLE);               // compress horizontal, vertical, and diagonal segments and leave only their end points
+        CV_RETR_EXTERNAL,                      // retrieve the outermost contours only
+        CV_CHAIN_APPROX_SIMPLE);               // compress horizontal, vertical, and diagonal segments and leave only their end points
 
     for (int i = 0; i < ptContours.size(); i++) {               // for each contour
         ContourWithData contourWithData;                                                    // instantiate a contour with data object
@@ -288,19 +262,18 @@ std::vector<ContourWithData> allContoursWithData;           // declare empty vec
         contourWithData.boundingRect = cv::boundingRect(contourWithData.ptContour);         // get the bounding rect
         contourWithData.fltArea = cv::contourArea(contourWithData.ptContour);               // calculate the contour area
         if(contourWithData.fltArea >MIN_CONTOUR_AREA)
-            validContoursWithData.push_back(contourWithData);                                     // add contour with data object to list of all contours with data
-
+        {
+            validContoursWithData.push_back(contourWithData);
+        }
     }
-    strFinalString="";
-    string seperator="";
 
     for(int i=0,j=0;i<validContoursWithData.size();j++)
     {
-         seperator.append("x");
+
          if((validContoursWithData[j+1].boundingRect.y+validContoursWithData[j+1].boundingRect.height)<validContoursWithData[j].boundingRect.y)
          {   std::sort(validContoursWithData.begin()+i, validContoursWithData.begin()+j+1, ContourWithData::sortByBoundingRectXPosition);
             i=j+1;
-            seperator.append("\n");
+
          }else if(j==(validContoursWithData.size()-1)){
             std::sort(validContoursWithData.begin()+i, validContoursWithData.begin()+j+1, ContourWithData::sortByBoundingRectXPosition);
 
@@ -314,20 +287,19 @@ std::vector<ContourWithData> allContoursWithData;           // declare empty vec
     {
         int diff=abs((validContoursWithData[j+1].boundingRect.x+validContoursWithData[j+1].boundingRect.width)-validContoursWithData[j].boundingRect.x);
         arrPos[j]=diff;
-        __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG","j : %d j+1 : %d diff : %d\n",validContoursWithData[j].boundingRect.x,(validContoursWithData[j+1].boundingRect.x+validContoursWithData[j+1].boundingRect.width),diff);         // show error message
-
-
     }
 
-    strFinalString="";
-    str="";
+
+     std::wofstream out(dataPath,std::ios::out);
+     out<<wchar_t(L"");
+     out.close();
     for (int i = 0,j=0; i < validContoursWithData.size(); i++) {            // for each contour
 
                                                                 // draw a green rect around the current char
         cv::rectangle(matTestingNumbers,                            // draw rectangle on original image
                       validContoursWithData[i].boundingRect,        // rect to draw
                       cv::Scalar(0, 255, 0),                        // green
-                      2);                                           // thickness
+                      0);                                           // thickness
 
         cv::Mat matROI = matThresh(validContoursWithData[i].boundingRect);          // get ROI image of bounding rect
 
@@ -339,12 +311,16 @@ std::vector<ContourWithData> allContoursWithData;           // declare empty vec
 
 
         float fltCurrentChar =kNearest.find_nearest(matROIFloat.reshape(1,1),1);
-       //__android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG","final string %c",char(int(fltCurrentChar)));
-
-        strFinalString = strFinalString + char(int(fltCurrentChar));        // append current char to full string
+        std::wofstream out(dataPath,std::ios::out|std::ios::app);
+        out<<wchar_t(int(fltCurrentChar));
+        out.close();
          if((validContoursWithData[i+1].boundingRect.y+validContoursWithData[i+1].boundingRect.height)<validContoursWithData[i].boundingRect.y)
           {   j=i+1;
-              strFinalString = strFinalString + "\n";
+              //strFinalString = strFinalString + "\n";
+              //t=t+L"\n";
+              std::wofstream out(dataPath,std::ios::out|std::ios::app);
+              out<<wchar_t(10);
+              out.close();
           }else if(i==(validContoursWithData.size()-1)){
               std::sort(validContoursWithData.begin()+j, validContoursWithData.begin()+i+1, ContourWithData::sortByBoundingRectXPosition);
               break;
@@ -352,18 +328,59 @@ std::vector<ContourWithData> allContoursWithData;           // declare empty vec
 
         if(arrPos[i]>10)
         {
-            strFinalString = strFinalString +" ";
-
+            //t=t+L" ";
+            //strFinalString = strFinalString +" ";
+            std::wofstream out(dataPath,std::ios::out|std::ios::app);
+            out<<wchar_t(32);
+            out.close();
          }
 
     }
 
-      std::ofstream out(dataPath,std::ios::out);
-            out << strFinalString.c_str();
-           // out<<seperator.c_str();
-            out.close();
+    mRgb=matTestingNumbers;
 
-   mRgb=matTestingNumbers;     // show input image with green boxes drawn around found digits
     return 1;
     }
 
+JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_trainIndi
+    (JNIEnv *env, jclass,jlong addrRgba,jstring path,jint value){
+
+    return 1;
+    }
+
+JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_processImage
+    (JNIEnv *env, jclass,jlong addrRgba){
+     cv::Mat& mRgb=*(cv::Mat*)addrRgba;
+
+     cv::Mat matTestingNumbers =mRgb;           // read in the test numbers image
+
+     if (matTestingNumbers.empty()){                                // if unable to open image
+         __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG","error: image not read from file\n\n");         // show error message on command line
+         return(0);                                                  // and exit program
+     }
+     cv::Mat matGrayscale;
+     cv::Mat matCanny;
+     cv::Mat matBlurred;
+     cv::Mat matThresh;
+     cv::Mat erosionMat;
+     cv::Mat matThreshCopy;
+    cv::cvtColor(matTestingNumbers, matGrayscale, CV_RGB2GRAY);
+    cv::GaussianBlur(matGrayscale,matBlurred,cv::Size(5, 5),0);
+    cv::Mat matSub=matBlurred-matGrayscale;
+    cv::threshold(matBlurred,matThresh, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
+    //cv::adaptiveThreshold(matSub,matThresh,255,CV_ADAPTIVE_THRESH_MEAN_C,cv::THRESH_BINARY_INV,11,2);
+
+    mRgb=matThresh;
+    return 1;
+    }
+JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_rotateImage
+    (JNIEnv *env, jclass,jlong addrRgba,jint angle){
+        cv::Mat& mRgb=*(cv::Mat*)addrRgba;
+        cv::Mat dst;
+        cv::Point2f pt(mRgb.cols/2., mRgb.rows/2.);
+        cv::Mat r = cv::getRotationMatrix2D(pt,angle, 1.0);
+        cv::warpAffine(mRgb, dst, r, Size(mRgb.cols, mRgb.rows));
+        mRgb=dst;
+       return 1;
+
+}

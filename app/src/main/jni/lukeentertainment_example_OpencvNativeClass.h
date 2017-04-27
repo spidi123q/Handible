@@ -34,8 +34,8 @@ extern "C" {
  * Method:    convertGray
  * Signature: (JLjava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_convertGray
-  (JNIEnv *, jclass, jlong, jstring);
+JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_train
+  (JNIEnv *, jclass, jlong, jstring,jint);
 
 /*
  * Class:     lukeentertainment_example_OpencvNativeClass
@@ -44,6 +44,17 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_convertG
  */
 JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_testInput
   (JNIEnv *, jclass,jlong,jstring);
+
+JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_trainIndi
+  (JNIEnv *, jclass,jlong,jstring,jint);
+
+JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_processImage
+    (JNIEnv *, jclass,jlong);
+JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_rotateImage
+    (JNIEnv *, jclass,jlong,jint);
+
+
+
 
 #ifdef __cplusplus
 }
