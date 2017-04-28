@@ -14,9 +14,9 @@
         android:layout_marginTop="10dp"
         android:layout_marginRight="10dp"
         android:layout_marginLeft="10dp"
+        android:textAlignment="gravity"
         android:divider="@null"
-        android:dividerHeight="0dp"
-        android:theme="@android:style/Theme.NoTitleBar">
+        android:dividerHeight="25dp">
 
     </ListView>
 
