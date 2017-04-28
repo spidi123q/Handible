@@ -208,7 +208,9 @@ public class MainActivity extends AppCompatActivity {
                 int id=CR.getInt(0);
                 String date=CR.getString(2);
                 int items=CR.getInt(3);
-                String path=CR.getString(4);
+                String path= CR.getString(4);
+
+                Toast.makeText(getApplicationContext(),path,Toast.LENGTH_SHORT).show();
                 mProductList.add(new Product(name,id,date,items,path));
 
             }while(CR.moveToNext());
