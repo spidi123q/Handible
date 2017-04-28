@@ -14,8 +14,9 @@
         android:layout_marginTop="10dp"
         android:layout_marginRight="10dp"
         android:layout_marginLeft="10dp"
-        android:dividerHeight="2dp"
-        android:divider="#d1d1d1">
+        android:divider="@null"
+        android:dividerHeight="0dp"
+        android:theme="@android:style/Theme.NoTitleBar">
 
     </ListView>
 
@@ -24,38 +25,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:clickable="true"
-        android:src="@drawable/plus"
+        android:src="@drawable/ic_add_black_24dp"
         app:layout_anchorGravity="bottom|right|end"
-        app:backgroundTint="#ffff98"
+        app:backgroundTint="@color/colorAccent"
         app:rippleColor="#FFF"
         android:layout_marginBottom="16dp"
         android:layout_marginRight="16dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="11dp" />
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/train_fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:clickable="true"
-        android:layout_marginBottom="16dp"
-        android:layout_marginLeft="16dp"
-        android:src="@drawable/plus"
-        app:backgroundTint="#ffff98"
-        app:rippleColor="#FFF"
-        />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/trainAppend"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:clickable="true"
-        android:layout_marginBottom="16dp"
-        android:layout_marginLeft="72dp"
-        android:src="@drawable/plus"
-        app:backgroundTint="#ffff98"
-        app:rippleColor="#FFF" />
 
 </RelativeLayout>
