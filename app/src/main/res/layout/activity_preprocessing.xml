@@ -16,34 +16,19 @@
         android:verticalSpacing="10dp"
         android:horizontalSpacing="10dp"
         android:stretchMode="columnWidth"
-        android:gravity="center"
-        />
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/gallery_fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:clickable="true"
-        android:src="@drawable/plus"
-        app:layout_anchorGravity="bottom|right|end"
-        app:backgroundTint="#ffff98"
-        app:rippleColor="#FFF"
-        android:layout_marginBottom="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="11dp" />
+        android:gravity="center" />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/useCameraFab"
+    <io.github.yavski.fabspeeddial.FabSpeedDial
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:clickable="true"
-        android:src="@drawable/plus"
-        app:layout_anchorGravity="bottom|left|end"
-        app:backgroundTint="#ffff98"
-        app:rippleColor="#FFF"
-        android:layout_marginBottom="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_alignParentBottom="true"
-         />
+        android:layout_gravity="end"
+        app:fabMenu="@menu/speed_dial"
+        app:miniFabBackgroundTint="@android:color/white"
+        app:miniFabDrawableTint="?attr/colorPrimaryDark"
+        app:miniFabTitleTextColor="?attr/colorPrimaryDark"
+        android:id="@+id/fab_speed_dial"
+        app:fabGravity="bottom_end"
+        android:layout_marginEnd="24dp"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="400dp" />
 </RelativeLayout>
