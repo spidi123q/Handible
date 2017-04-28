@@ -1,14 +1,18 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <!-- "Mark Favorite", should appear as action button if possible -->
     <item
-        android:id="@+id/action_favorite"
-        android:icon="@drawable/plus"
-        android:title="@string/app_name"
-        android:enabled="true"
-        android:visible="true"
-        android:checkable="false"
-        android:checked="false"
-        android:showAsAction="always" />
+        android:id="@+id/action_train"
+        android:icon="@drawable/ic_directions_run_black_24dp"
+        android:title="@string/appbar_scrolling_view_behavior"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/action_train_append"
+        android:icon="@drawable/ic_directions_walk_black_24dp"
+        android:title="@string/bottom_sheet_behavior"
+        app:showAsAction="ifRoom"/>
+
 
 </menu>
