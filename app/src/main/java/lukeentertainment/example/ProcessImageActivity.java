@@ -15,6 +15,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -119,16 +121,7 @@ public class ProcessImageActivity extends AppCompatActivity {
 
             }
         });
-        saveFab=(FloatingActionButton)findViewById(R.id.save_fab);
-        saveFab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm:ss");
-                String date = df.format(Calendar.getInstance().getTime());
-                saveImage(bitmap,projectName,projectName+date);
-                finish();
-            }
-        });
+
 
         getText=(FloatingActionButton)findViewById(R.id.get_text_fab);
         extractedText=(EditText)findViewById(R.id.editText);
@@ -225,6 +218,23 @@ public class ProcessImageActivity extends AppCompatActivity {
 
         return result;
     }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.process_image_menu, menu);
+        return true;
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch ( item.getItemId() ){
+            case R.id.action_save :
+                DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm:ss");
+                String date = df.format(Calendar.getInstance().getTime());
+                saveImage(bitmap,projectName,projectName+date);
+                finish();
+                return true;
 
+        }
+        return super.onOptionsItemSelected(item);
+    }
 }
