@@ -226,11 +226,12 @@ public class ProcessImageActivity extends AppCompatActivity {
                 System.out.println("Text : "+str);
                 str=new StringBuffer(str).reverse().toString();
                 extractedText.setEnabled(true);
-                extractedText.setText(str.toString());
+                extractedText.setText(str);
                 Utils.matToBitmap(mat,bitmap);
                 imageView.setImageBitmap(bitmap);
                 Intent i=new Intent(ProcessImageActivity.this,TextEditor.class);
-                i.putExtra("ExtractedText",str.toString());
+                Log.e("PRoc", "onOptionsItemSelected: "+ str);
+                i.putExtra("ExtractedText",str);
                 startActivity(i);
                 return true;
 
