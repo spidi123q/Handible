@@ -1,5 +1,6 @@
 package lukeentertainment.example;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -10,10 +11,15 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -63,6 +69,11 @@ public class ProcessImageActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_process_image);
+        Activity activity = this;
+        Window window = activity.getWindow();
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        window.setStatusBarColor(ContextCompat.getColor(activity, R.color.colorPrimary));
         Intent i=getIntent();
         uri= i.getParcelableExtra("ImageURI");
         position=i.getIntExtra("Position",0);
@@ -110,42 +121,8 @@ public class ProcessImageActivity extends AppCompatActivity {
 
             }
         });
-        saveFab=(FloatingActionButton)findViewById(R.id.save_fab);
-        saveFab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm:ss");
-                String date = df.format(Calendar.getInstance().getTime());
-                saveImage(bitmap,projectName,projectName+date);
-                finish();
-            }
-        });
 
-        getText=(FloatingActionButton)findViewById(R.id.get_text_fab);
         extractedText=(EditText)findViewById(R.id.editText);
-        getText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Utils.bitmapToMat(bitmap,mat);
-                File mediaStorageDir = new File(
-                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "MyCameraApp");
-                if (!mediaStorageDir.exists()) {
-                    if (!mediaStorageDir.mkdirs()) {
-                        Log.d("MyCameraApp", "failed to create directory");
-                    }
-                }
-                String str="";
-                OpencvNativeClass.testInput(mat.getNativeObjAddr(),(mediaStorageDir.getPath()+File.separator));
-                str=readStrFromFile(mediaStorageDir.getPath()+File.separator+"data.txt");
-                System.out.println("Text : "+str);
-                str=new StringBuffer(str).reverse().toString();
-                extractedText.setEnabled(true);
-                extractedText.setText(str.toString());
-                Utils.matToBitmap(mat,bitmap);
-                imageView.setImageBitmap(bitmap);
-
-            }
-        });
     }
 
 
@@ -216,6 +193,49 @@ public class ProcessImageActivity extends AppCompatActivity {
 
         return result;
     }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.process_image_menu, menu);
+        return true;
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch ( item.getItemId() ){
+            case R.id.action_save :
 
+                DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm:ss");
+                String date = df.format(Calendar.getInstance().getTime());
+                saveImage(bitmap,projectName,projectName+date);
+                finish();
+                return true;
+
+            case R.id.action_get_text :
+
+                Utils.bitmapToMat(bitmap,mat);
+                File mediaStorageDir = new File(
+                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "MyCameraApp");
+                if (!mediaStorageDir.exists()) {
+                    if (!mediaStorageDir.mkdirs()) {
+                        Log.d("MyCameraApp", "failed to create directory");
+                    }
+                }
+                String str="";
+                OpencvNativeClass.testInput(mat.getNativeObjAddr(),(mediaStorageDir.getPath()+File.separator));
+                str=readStrFromFile(mediaStorageDir.getPath()+File.separator+"data.txt");
+                System.out.println("Text : "+str);
+                str=new StringBuffer(str).reverse().toString();
+                extractedText.setEnabled(true);
+                extractedText.setText(str);
+                Utils.matToBitmap(mat,bitmap);
+                imageView.setImageBitmap(bitmap);
+                Intent i=new Intent(ProcessImageActivity.this,TextEditor.class);
+                Log.e("PRoc", "onOptionsItemSelected: "+ str);
+                i.putExtra("ExtractedText",str);
+                startActivity(i);
+                return true;
+
+        }
+        return super.onOptionsItemSelected(item);
+    }
 }
