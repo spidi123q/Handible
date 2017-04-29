@@ -57,7 +57,7 @@ public class ProductListAdapter extends BaseAdapter {
 
             File image = new File(productList.get(position).getImageIconPath());
             Bitmap bitmap = BitmapFactory.decodeFile(image.getAbsolutePath());
-            bitmap = Bitmap.createScaledBitmap(bitmap,prIcon.getWidth(),prIcon.getHeight(),true);
+            bitmap = Bitmap.createScaledBitmap(bitmap,72,72,true);
             prIcon.setImageBitmap(bitmap);
         }
         v.setTag(productList.get(position).getId());

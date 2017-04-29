@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#d1d8f3"
+    android:background="#FFFF"
     tools:context="lukeentertainment.example.MainActivity">
 
     <ListView
@@ -14,9 +14,9 @@
         android:layout_marginTop="10dp"
         android:layout_marginRight="10dp"
         android:layout_marginLeft="10dp"
+        android:textAlignment="gravity"
         android:divider="@null"
-        android:dividerHeight="0dp"
-        android:theme="@android:style/Theme.NoTitleBar">
+        android:dividerHeight="25dp">
 
     </ListView>
 

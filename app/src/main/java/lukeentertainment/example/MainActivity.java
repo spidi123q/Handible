@@ -102,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
         db=new DatabaseOperations(getApplicationContext());
         lyProduct=(ListView)findViewById(R.id.list_view);
         refreshList();
+
         fab=(FloatingActionButton)findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -189,6 +190,7 @@ public class MainActivity extends AppCompatActivity {
     }
     protected void onResume() {
         super.onResume();
+        refreshList();
         if (OpenCVLoader.initDebug()) {
             Log.i(TAG, "OpenCV loaded successfully");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
@@ -208,7 +210,9 @@ public class MainActivity extends AppCompatActivity {
                 int id=CR.getInt(0);
                 String date=CR.getString(2);
                 int items=CR.getInt(3);
-                String path=CR.getString(4);
+                String path= CR.getString(4);
+
+                Toast.makeText(getApplicationContext(),path,Toast.LENGTH_SHORT).show();
                 mProductList.add(new Product(name,id,date,items,path));
 
             }while(CR.moveToNext());

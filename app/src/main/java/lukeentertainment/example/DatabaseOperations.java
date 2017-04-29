@@ -63,6 +63,7 @@ public class DatabaseOperations extends SQLiteOpenHelper {
         cv.put(PARENT_ID,parent);
         cv.put(CONTENT_PATH,path);
         long result=db.insert(CONTENT_TABLE,null,cv);
+        updateProjectListIcon(parent,path);
         if(result==-1)
             return  false;
         return true;
@@ -91,10 +92,11 @@ public class DatabaseOperations extends SQLiteOpenHelper {
         SQLiteDatabase db=this.getWritableDatabase();
         db.execSQL("UPDATE "+PROJECT_LIST_TABLE+" SET "+colom+" = "+ Integer.toString(value)+" WHERE "+PROJECT_ID+" = "+Integer.toString(id));
     }
-    public void updateProjectListIcon(int id,String colom,String icon)
+    public void updateProjectListIcon(int id,String icon)
     {
+        Log.d("DB", "updateProjectListIcon: ");
         SQLiteDatabase db=this.getWritableDatabase();
-        db.execSQL("UPDATE "+PROJECT_LIST_TABLE+" SET "+colom+" = '"+icon+"' WHERE "+PROJECT_ID+" = "+Integer.toString(id));
+        db.execSQL("UPDATE "+PROJECT_LIST_TABLE+" SET "+PROJECT_ICON_PATH+" = '"+icon+"' WHERE "+PROJECT_ID+" = "+Integer.toString(id));
     }
     public void deleteFromProjectList(String query)
     {
