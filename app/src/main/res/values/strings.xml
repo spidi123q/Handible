@@ -3,7 +3,14 @@
     <string name="import_gal">Gallery</string>
     <string name="import_cam">Camera</string>
     <string name="save">Save</string>
+    <string name="edit">Edit</string>
     <string name="title_activity_splash_screen">SplashScreen</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="h1">H1</string>
+    <string name="h2">H2</string>
+    <string name="h3">H3</string>
+    <string name="h4">H4</string>
+    <string name="h5">H5</string>
+    <string name="h6">H6</string>
 </resources>
