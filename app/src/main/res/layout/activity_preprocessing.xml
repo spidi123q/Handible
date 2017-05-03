@@ -28,7 +28,7 @@
         app:miniFabTitleTextColor="?attr/colorPrimaryDark"
         android:id="@+id/fab_speed_dial"
         app:fabGravity="bottom_end"
-        android:layout_marginEnd="24dp"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginTop="400dp" />
+         />
 </RelativeLayout>

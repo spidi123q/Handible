@@ -1,11 +1,11 @@
 #include <lukeentertainment_example_OpencvNativeClass.h>
-const int MIN_CONTOUR_AREA = 50;
+const int MIN_CONTOUR_AREA = 30;
 
 const int RESIZED_IMAGE_WIDTH = 20;
 const int RESIZED_IMAGE_HEIGHT = 30;
 std::string str="";
 std::string strFinalString="";
-
+    int checkBounds(Rect,Rect);
   class ContourWithData {
   public:
       // member variables ///////////////////////////////////////////////////////////////////////////
@@ -32,81 +32,65 @@ std::string strFinalString="";
 
 JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_train
   (JNIEnv *env, jclass, jlong addrRgba,jstring path,jint option){
-    cv::Mat& mRgb=*(cv::Mat*)addrRgba;
+  cv::Mat& mRgb=*(cv::Mat*)addrRgba;
 
-   const jsize len = env->GetStringUTFLength(path);
-   const char* strChars = env->GetStringUTFChars(path, (jboolean *)0);
-   std::string Result(strChars, len);
-   char classPath[100],imagePath[100];
+  const jsize len = env->GetStringUTFLength(path);
+  const char* strChars = env->GetStringUTFChars(path, (jboolean *)0);
+  std::string Result(strChars, len);
+  char classPath[100],imagePath[100];
 
-   strcpy(classPath,strChars);
-   strcpy(imagePath,strChars);
+  strcpy(classPath,strChars);
+  strcpy(imagePath,strChars);
 
-   env->ReleaseStringUTFChars(path, strChars);
-    strcat(classPath,"classifications.xml");
-    strcat(imagePath,"images.xml");
-   __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG"," %s\n",classPath);
+  env->ReleaseStringUTFChars(path, strChars);
+  strcat(classPath,"classifications.xml");
+  strcat(imagePath,"images.xml");
+  __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG"," %s\n",classPath);
 
-   std::vector<ContourWithData> allContoursWithData;           // declare empty vectors,
-       std::vector<ContourWithData> validContoursWithData;
+  std::vector<ContourWithData> allContoursWithData;           // declare empty vectors,
+  std::vector<ContourWithData> validContoursWithData;
 
-     cv::Mat imgTrainingNumbers;         // input image
-     cv::Mat imgGrayscale;               //
-     cv::Mat imgBlurred;                 // declare various images
-     cv::Mat imgThresh;                  //
-     cv::Mat imgThreshCopy;
-     cv::Mat imgCanny;
+  cv::Mat imgTrainingNumbers;         // input image
+  cv::Mat imgGrayscale;               //
+  cv::Mat imgBlurred;                 // declare various images
+  cv::Mat imgThresh;                  //
+  cv::Mat imgThreshCopy;
+  cv::Mat imgCanny;
 
-    std:: vector<std::vector<cv::Point> > ptContours;        // declare contours vector
-     std::vector<cv::Vec4i> v4iHierarchy;                    // declare contours hierarchy
+  std:: vector<std::vector<cv::Point> > ptContours;        // declare contours vector
+  std::vector<cv::Vec4i> v4iHierarchy;                    // declare contours hierarchy
 
-     cv::Mat matClassificationInts;      // these are our training classifications, note we will have to perform some conversions before writing to file later
+  cv::Mat matClassificationInts;      // these are our training classifications, note we will have to perform some conversions before writing to file later
 
                                     // these are our training images, due to the data types that the KNN object KNearest requires, we have to declare a single Mat,
                                     // then append to it as though it's a vector, also we will have to perform some conversions before writing to file later
-     cv::Mat matTrainingImages;
-
-                                    // possible chars we are interested in are digits 0 through 9 and capital letters A through Z, put these in vector intValidChars
-     std::vector<int> intValidChars = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                                        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
-                                        'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
-                                        'U', 'V', 'W', 'X', 'Y', 'Z',
-                                       'a','b','c','d','e','f','g','h','i','j','k','l','m',
-                                        'n','o','p','q','r','s','t','u','v','w','x','y','z'};
-
-        imgTrainingNumbers =(cv::Mat) mRgb;         // read in training numbers image
-
-        if (imgTrainingNumbers.empty()) {                               // if unable to open image
-             __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG","error: image not read from file\n\n");         // show error message on command line
+  cv::Mat matTrainingImages;
+  imgTrainingNumbers =(cv::Mat) mRgb;
+  if (imgTrainingNumbers.empty()) {                               // if unable to open image
+      __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG","error: image not read from file\n\n");         // show error message on command line
             return((jint)0);                                                  // and exit program
-        }
-        cv::cvtColor(imgTrainingNumbers, imgGrayscale, CV_RGB2GRAY);        // convert to grayscale
+  }
+  cv::cvtColor(imgTrainingNumbers, imgGrayscale, CV_RGB2GRAY);        // convert to grayscale
 
-        cv::GaussianBlur(imgGrayscale,imgBlurred,cv::Size(5,5),0);
-        cv::threshold(imgBlurred,imgThresh, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);                           // constant subtracted from the mean or weighted mean
+  //cv::GaussianBlur(imgGrayscale,imgBlurred,cv::Size(5,5),0);
+  cv::threshold(imgGrayscale,imgThresh, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);                           // constant subtracted from the mean or weighted mean
 
-       imgThreshCopy = imgThresh.clone();          // make a copy of the thresh image, this in necessary b/c findContours modifies the image
+  imgThreshCopy = imgThresh.clone();
+  cv::findContours(imgThreshCopy,ptContours,v4iHierarchy,cv::RETR_EXTERNAL,cv::CHAIN_APPROX_SIMPLE);
 
-
-        cv::findContours(imgThreshCopy,             // input image, make sure to use a copy since the function will modify this image in the course of finding contours
-            ptContours,                             // output contours
-            v4iHierarchy,                           // output hierarchy
-            cv::RETR_EXTERNAL,                      // retrieve the outermost contours only
-            cv::CHAIN_APPROX_SIMPLE);               // compress horizontal, vertical, and diagonal segments and leave only their end points
-
-        __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG"," length: %d\n",ptContours.size());
-        for (int i = 0; i < ptContours.size(); i++) {               // for each contour
+  __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG"," length: %d\n",ptContours.size());
+  for (int i = 0; i < ptContours.size(); i++) {               // for each contour
                 ContourWithData contourWithData;                                                    // instantiate a contour with data object
                 contourWithData.ptContour = ptContours[i];                                          // assign contour to contour with data
                 contourWithData.boundingRect = cv::boundingRect(contourWithData.ptContour);         // get the bounding rect
                 contourWithData.fltArea = cv::contourArea(contourWithData.ptContour);               // calculate the contour area
                 if(contourWithData.fltArea >MIN_CONTOUR_AREA)
                      validContoursWithData.push_back(contourWithData);                                   // add contour with data object to list of all contours with data
-            }
+  }
 
 
-        if(option==1)
-        {
+  if(option==1)
+  {
             cv::FileStorage fsClassifications(classPath, cv::FileStorage::READ);        // open the classifications file
             fsClassifications["classifications"] >> matClassificationInts;      // read classifications section into Mat classifications variable
             fsClassifications.release();
@@ -114,8 +98,8 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_train
             cv::FileStorage fsTrainingImages(imagePath, cv::FileStorage::READ);          // open the training images file
             fsTrainingImages["images"] >> matTrainingImages;           // read images section into Mat training images variable
             fsTrainingImages.release();
-        }
-        for (int i = 0; i < validContoursWithData.size(); i++) {
+  }
+  for (int i = 0; i < validContoursWithData.size(); i++) {
             // for each contour
             if (true) {                // if contour is big enough to consider
                 cv::Rect boundingRect = validContoursWithData[i].boundingRect;                // get the bounding rect
@@ -150,9 +134,9 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_train
                                                                                                 // data types that KNearest.train accepts
                 }   // end if
             }   // end if
-        }   // end for
+  }   // end for
 
-        __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG", "\n trainging complete \n");
+  __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG", "\n trainging complete \n");
 
 
                     // save classifications to file ///////////////////////////////////////////////////////
@@ -203,8 +187,7 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_train
         strcat(imagePath,"images.xml");
         strcat(dataPath,"data.txt");
 
-std::vector<ContourWithData> allContoursWithData;           // declare empty vectors,
-    std::vector<ContourWithData> validContoursWithData;         // we will fill these shortly
+    std::vector<ContourWithData> validContoursWithData,validContoursWithDataWord,validContoursWithDataLine;         // we will fill these shortly
 
     cv::Mat matClassificationFloats;      // we will read the classification numbers into this variable as though it is a vector
 
@@ -214,7 +197,6 @@ std::vector<ContourWithData> allContoursWithData;           // declare empty vec
         __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG","error, unable to open training classifications file, exiting program\n\n");    // show error message
         return(0);                                                                                  // and exit program
     }
-
     fsClassifications["classifications"] >> matClassificationFloats;      // read classifications section into Mat classifications variable
     fsClassifications.release();                                        // close the classifications file
 
@@ -233,66 +215,131 @@ std::vector<ContourWithData> allContoursWithData;           // declare empty vec
     cv::KNearest kNearest=cv::KNearest();
     kNearest.train(matTrainingImages,matClassificationFloats);
 
-    cv::Mat matTestingNumbers =mRgb;           // read in the test numbers image
+    cv::Mat matTestingNumbers =mRgb.clone();
+    cv::Mat imgTestingNumbers =mRgb.clone();
+    cv::Mat lineMat =mRgb.clone();
 
     if (matTestingNumbers.empty()) {                                // if unable to open image
          __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG","error: image not read from file\n\n");         // show error message on command line
         return(0);                                                  // and exit program
     }
 
-    cv::Mat matGrayscale;           //
-    cv::Mat matCanny;
-    cv::Mat matBlurred;             // declare more image variables
-    cv::Mat matThresh;              //
-    cv::Mat erosionMat;
-    cv::Mat matThreshCopy;          //
-    cv::cvtColor(matTestingNumbers,matThresh, CV_RGB2GRAY);
-    matThreshCopy = matThresh.clone();              // make a copy of the thresh image, this in necessary b/c findContours modifies the image
-    std::vector<std::vector<cv::Point> > ptContours;        // declare a vector for the contours
-    std::vector<cv::Vec4i> v4iHierarchy;                    // declare a vector for the hierarchy (we won't use this in this program but this may be helpful for reference)
-    cv::findContours(matThreshCopy,             // input image, make sure to use a copy since the function will modify this image in the course of finding contours
-        ptContours,                             // output contours
-        v4iHierarchy,                           // output hierarchy
-        CV_RETR_EXTERNAL,                      // retrieve the outermost contours only
-        CV_CHAIN_APPROX_SIMPLE);               // compress horizontal, vertical, and diagonal segments and leave only their end points
+    cv::Mat matBlurred;
+    cv::Mat matThresh;
+    cv::Mat matThreshCopy;
 
+    cv::Mat imgBlurred;
+    cv::Mat imgThresh;
+    cv::Mat imgThreshCopy;
+
+    cv::Mat lineBlurred;
+    cv::Mat lineThresh;
+    cv::Mat lineThreshCopy;
+
+    cv::cvtColor(matTestingNumbers,matThresh, CV_RGB2GRAY);
+    cv::cvtColor(imgTestingNumbers,imgThresh, CV_RGB2GRAY);
+    cv::cvtColor(lineMat,lineThresh, CV_RGB2GRAY);
+
+    matThreshCopy = matThresh.clone();
+    imgThreshCopy = imgThresh.clone();
+    lineThreshCopy = lineThresh.clone();
+
+    std::vector<std::vector<cv::Point> > ptContours,ptContoursWord,ptContoursLine;
+    std::vector<cv::Vec4i> v4iHierarchy,v4iHierarchyWord,v4iHierarchyLine;
+
+    cv::findContours(matThreshCopy,ptContours,v4iHierarchy,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
+    int totalWidth=0;
     for (int i = 0; i < ptContours.size(); i++) {               // for each contour
         ContourWithData contourWithData;                                                    // instantiate a contour with data object
         contourWithData.ptContour = ptContours[i];                                          // assign contour to contour with data
         contourWithData.boundingRect = cv::boundingRect(contourWithData.ptContour);         // get the bounding rect
         contourWithData.fltArea = cv::contourArea(contourWithData.ptContour);               // calculate the contour area
-        if(contourWithData.fltArea >MIN_CONTOUR_AREA)
-        {
+        if(contourWithData.fltArea >MIN_CONTOUR_AREA){
             validContoursWithData.push_back(contourWithData);
+            totalWidth+=contourWithData.fltArea;
         }
     }
+    int dilationValue=(float(totalWidth/validContoursWithData.size()))*0.04;
+    Mat element = Mat::ones(1,dilationValue, CV_8UC1);
+    cv::Size s = imgThresh.size();
+    int rows = s.height;
+    int cols = s.width;
+    cv::dilate(imgThresh,imgThresh, element);
 
-    for(int i=0,j=0;i<validContoursWithData.size();j++)
-    {
+    imgThreshCopy = imgThresh.clone();
 
-         if((validContoursWithData[j+1].boundingRect.y+validContoursWithData[j+1].boundingRect.height)<validContoursWithData[j].boundingRect.y)
-         {   std::sort(validContoursWithData.begin()+i, validContoursWithData.begin()+j+1, ContourWithData::sortByBoundingRectXPosition);
-            i=j+1;
-
-         }else if(j==(validContoursWithData.size()-1)){
-            std::sort(validContoursWithData.begin()+i, validContoursWithData.begin()+j+1, ContourWithData::sortByBoundingRectXPosition);
-
-            break;
-         }
-
+    cv::findContours(imgThreshCopy,ptContoursWord,v4iHierarchyWord,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
+    for (int i = 0; i < ptContoursWord.size(); i++) {               // for each contour
+                    ContourWithData contourWithData;                                                    // instantiate a contour with data object
+                    contourWithData.ptContour = ptContoursWord[i];                                          // assign contour to contour with data
+                    contourWithData.boundingRect = cv::boundingRect(contourWithData.ptContour);         // get the bounding rect
+                    contourWithData.fltArea = cv::contourArea(contourWithData.ptContour);               // calculate the contour area
+                    if(contourWithData.fltArea >MIN_CONTOUR_AREA*10)
+                        validContoursWithDataWord.push_back(contourWithData);
     }
-    int arrPos[1000];
+    Mat kernel = Mat::ones(1,dilationValue*5, CV_8UC1);
+    cv::dilate(lineThresh,lineThresh,kernel);
 
-    for(int j=0;j<validContoursWithData.size()-1;j++)
-    {
-        int diff=abs((validContoursWithData[j+1].boundingRect.x+validContoursWithData[j+1].boundingRect.width)-validContoursWithData[j].boundingRect.x);
-        arrPos[j]=diff;
+    lineThreshCopy = lineThresh.clone();
+    cv::findContours(lineThreshCopy,ptContoursLine,v4iHierarchyLine,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
+    for (int i = 0; i < ptContoursLine.size(); i++) {               // for each contour
+                    ContourWithData contourWithData;                                                    // instantiate a contour with data object
+                    contourWithData.ptContour = ptContoursLine[i];                                          // assign contour to contour with data
+                    contourWithData.boundingRect = cv::boundingRect(contourWithData.ptContour);
+                    contourWithData.fltArea = cv::contourArea(contourWithData.ptContour);
+                    if(contourWithData.fltArea >MIN_CONTOUR_AREA*50)
+                         validContoursWithDataLine.push_back(contourWithData);                                   // add contour with data object to list of all contours with data
     }
 
+    std::wofstream out(dataPath,std::ios::out);
+    out<<wchar_t(L"");
+    out.close();
 
-     std::wofstream out(dataPath,std::ios::out);
-     out<<wchar_t(L"");
-     out.close();
+    //Line and space algorithm
+
+    std::sort(validContoursWithDataLine.begin(),validContoursWithDataLine.end(), ContourWithData::sortByBoundingRectYPosition);
+    for(int m=0;m<validContoursWithDataLine.size();m++)
+    {
+        std::vector<ContourWithData> validLine;
+        for(int l=0;l<validContoursWithDataWord.size();l++)
+        {
+             if(checkBounds(validContoursWithDataLine[m].boundingRect,validContoursWithDataWord[l].boundingRect))
+                  validLine.push_back(validContoursWithDataWord[l]);
+
+        }
+        std::sort(validLine.begin(),validLine.end(), ContourWithData::sortByBoundingRectXPosition);
+        for (int i = 0; i < validLine.size(); i++) {
+                     std::vector<ContourWithData> validLetters;
+                     cv::Rect boundingRect = validLine[i].boundingRect;
+                     for(int j=0;j<validContoursWithData.size();j++)
+                     {
+                           if(checkBounds(boundingRect,validContoursWithData[j].boundingRect))
+                                validLetters.push_back(validContoursWithData[j]);
+
+                     }
+                     std::sort(validLetters.begin(),validLetters.end(), ContourWithData::sortByBoundingRectXPosition);
+                     for(int k=0;k<validLetters.size();k++)
+                     {
+                        cv::rectangle(matTestingNumbers,validLetters[k].boundingRect,cv::Scalar(0, 255, 0),0);
+                        cv::Mat matROI = matThresh(validLetters[k].boundingRect);
+                        cv::Mat matROIResized;
+                        cv::resize(matROI, matROIResized, cv::Size(RESIZED_IMAGE_WIDTH, RESIZED_IMAGE_HEIGHT));     // resize image, this will be more consistent for recognition and storage
+                        cv::Mat matROIFloat;
+                        matROIResized.convertTo(matROIFloat, CV_32FC1);             // convert Mat to float, necessary for call to find_nearest
+                        float fltCurrentChar =kNearest.find_nearest(matROIFloat.reshape(1,1),1);
+                        std::wofstream out(dataPath,std::ios::out|std::ios::app);
+                        out<<wchar_t(int(fltCurrentChar));
+                        out.close();
+                     }
+                     std::wofstream out(dataPath,std::ios::out|std::ios::app);
+                     out<<wchar_t(32);
+                     out.close();
+        }
+    }
+    mRgb=matTestingNumbers;
+    /*std::wofstream out(dataPath,std::ios::out);
+    out<<wchar_t(L"");
+    out.close();
     for (int i = 0,j=0; i < validContoursWithData.size(); i++) {            // for each contour
 
                                                                 // draw a green rect around the current char
@@ -308,39 +355,25 @@ std::vector<ContourWithData> allContoursWithData;           // declare empty vec
 
         cv::Mat matROIFloat;
         matROIResized.convertTo(matROIFloat, CV_32FC1);             // convert Mat to float, necessary for call to find_nearest
-
-
         float fltCurrentChar =kNearest.find_nearest(matROIFloat.reshape(1,1),1);
-        std::wofstream out(dataPath,std::ios::out|std::ios::app);
-        out<<wchar_t(int(fltCurrentChar));
-        out.close();
-         if((validContoursWithData[i+1].boundingRect.y+validContoursWithData[i+1].boundingRect.height)<validContoursWithData[i].boundingRect.y)
-          {   j=i+1;
-              //strFinalString = strFinalString + "\n";
-              //t=t+L"\n";
-              std::wofstream out(dataPath,std::ios::out|std::ios::app);
-              out<<wchar_t(10);
-              out.close();
-          }else if(i==(validContoursWithData.size()-1)){
-              std::sort(validContoursWithData.begin()+j, validContoursWithData.begin()+i+1, ContourWithData::sortByBoundingRectXPosition);
-              break;
-          }
 
-        if(arrPos[i]>10)
-        {
-            //t=t+L" ";
-            //strFinalString = strFinalString +" ";
-            std::wofstream out(dataPath,std::ios::out|std::ios::app);
-            out<<wchar_t(32);
-            out.close();
-         }
 
     }
-
-    mRgb=matTestingNumbers;
+*/
 
     return 1;
     }
+
+    int checkBounds(Rect p,Rect c)
+    {
+        if (   (c.x+c.width) < (p.x+p.width)&& (c.x) > (p.x)&& (c.y) >= (p.y)&& (c.y+c.height) <= (p.y+p.height))
+            return 1;
+        else
+            return 0;
+    }
+ /*  std::wofstream out(dataPath,std::ios::out);
+        out<<wchar_t(L"");
+        out.close();*/
 
 JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_trainIndi
     (JNIEnv *env, jclass,jlong addrRgba,jstring path,jint value){
@@ -365,9 +398,9 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_processI
      cv::Mat erosionMat;
      cv::Mat matThreshCopy;
     cv::cvtColor(matTestingNumbers, matGrayscale, CV_RGB2GRAY);
-    cv::GaussianBlur(matGrayscale,matBlurred,cv::Size(5, 5),0);
-    cv::Mat matSub=matBlurred-matGrayscale;
-    cv::threshold(matBlurred,matThresh, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
+    //cv::GaussianBlur(matGrayscale,matBlurred,cv::Size(5, 5),0);
+
+    cv::threshold(matGrayscale,matThresh, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
     //cv::adaptiveThreshold(matSub,matThresh,255,CV_ADAPTIVE_THRESH_MEAN_C,cv::THRESH_BINARY_INV,11,2);
 
     mRgb=matThresh;
@@ -384,3 +417,10 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_rotateIm
        return 1;
 
 }
+
+
+JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_detectWords
+    (JNIEnv *env, jclass, jlong addrRgba){
+
+    return 1;
+ }
