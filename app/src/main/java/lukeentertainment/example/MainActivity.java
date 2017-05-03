@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
                                             DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm:ss");
                                             String date = df.format(Calendar.getInstance().getTime());
                                             db.addRowProjectList(name,date,0,"null");
-                                            Toast.makeText(getBaseContext(), "Registerd Successfully", Toast.LENGTH_SHORT).show();
+                                            //Toast.makeText(getBaseContext(), "Registerd Successfully", Toast.LENGTH_SHORT).show();
                                             refreshList();
                                         }
 
@@ -212,14 +212,14 @@ public class MainActivity extends AppCompatActivity {
                 int items=CR.getInt(3);
                 String path= CR.getString(4);
 
-                Toast.makeText(getApplicationContext(),path,Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(),path,Toast.LENGTH_SHORT).show();
                 mProductList.add(new Product(name,id,date,items,path));
 
             }while(CR.moveToNext());
         }
         else
         {
-            Toast.makeText(getApplicationContext(),"Nothing in database",Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getApplicationContext(),"Nothing in database",Toast.LENGTH_SHORT).show();
         }
         adapter=new ProductListAdapter(this,mProductList);
         lyProduct.setAdapter(adapter);
@@ -245,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
                 int projid=CR.getInt(0);
                 db.deleteFromProjectList("DELETE FROM project_list WHERE Project_id = "+projid+";");
                 db.deleteFromProjectList("DELETE FROM Content_list WHERE Parent_id = "+projid+";");
-                Toast.makeText(getApplicationContext(),"deleteed" +id,Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(),"deleteed" +id,Toast.LENGTH_SHORT).show();
                 refreshList();
 
                 return true;

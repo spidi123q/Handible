@@ -53,6 +53,11 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_processI
 JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_rotateImage
     (JNIEnv *, jclass,jlong,jint);
 
+JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_detectWords
+  (JNIEnv *, jclass,jlong);
+
+
+
 
 
 

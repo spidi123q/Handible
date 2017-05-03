@@ -10,6 +10,8 @@ public class OpencvNativeClass {
     public native static int trainIndi(long matAddrRgba,String path,int Unicodevalue);
     public native static int processImage(long matAddrRgba);
     public native static int rotateImage(long matAddrRgba,int angle);
+    public native static int detectWords(long matAddrRgba);
+
     
 
 }

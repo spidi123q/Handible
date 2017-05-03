@@ -49,17 +49,18 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Scanner;
 
+import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
+import static org.opencv.imgproc.Imgproc.THRESH_BINARY_INV;
 import static org.opencv.imgproc.Imgproc.getRotationMatrix2D;
 
 public class ProcessImageActivity extends AppCompatActivity {
 
     ImageView imageView;
     SeekBar rotateSeekBar;
-    Mat mat;
-    FloatingActionButton saveFab;
-    FloatingActionButton getText;
+    Mat mat,spareMat,originalMat;
+    FloatingActionButton invertFab;
     EditText extractedText;
-    Bitmap bitmap;
+    Bitmap bitmap,tmp;
     Uri uri;
     int position,parentID;
     DatabaseOperations db;
@@ -88,6 +89,7 @@ public class ProcessImageActivity extends AppCompatActivity {
 
         try {
             bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+            tmp= MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.PNG, 1, out);
             bitmap = BitmapFactory.decodeStream(new ByteArrayInputStream(out.toByteArray()));
@@ -96,11 +98,34 @@ public class ProcessImageActivity extends AppCompatActivity {
             Utils.bitmapToMat(bitmap,mat);
             OpencvNativeClass.processImage(mat.getNativeObjAddr());
             Utils.matToBitmap(mat,bitmap);
+            spareMat=mat.clone();
+            originalMat=mat.clone();
             imageView.setImageBitmap(bitmap);
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+        invertFab=(FloatingActionButton)findViewById(R.id.invert_fab);
+        invertFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Imgproc.threshold(mat,mat,0,255,THRESH_BINARY_INV);
+                spareMat=mat.clone();
+                Utils.matToBitmap(mat,bitmap);
+                imageView.setImageBitmap(bitmap);
+            }
+        });
+        invertFab.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                mat=originalMat.clone();
+                spareMat=originalMat.clone();
+                Utils.matToBitmap(mat,bitmap);
+                imageView.setImageBitmap(bitmap);
+
+                return true;
+            }
+        });
         rotateSeekBar=(SeekBar)findViewById(R.id.rotate_sb);
         rotateSeekBar.setMax(360);
         rotateSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -211,8 +236,9 @@ public class ProcessImageActivity extends AppCompatActivity {
                 return true;
 
             case R.id.action_get_text :
-
+                Utils.matToBitmap(spareMat,bitmap);
                 Utils.bitmapToMat(bitmap,mat);
+
                 File mediaStorageDir = new File(
                         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "MyCameraApp");
                 if (!mediaStorageDir.exists()) {
@@ -237,5 +263,23 @@ public class ProcessImageActivity extends AppCompatActivity {
 
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private String processString(String str)
+    {
+        int length=str.length();
+        char[] s = str.toCharArray();
+        for(int i=0;i<length-1;i++)
+        {
+            if(Character.isLowerCase(s[i]))
+            {
+                if(Character.isUpperCase(s[i+1]))
+                {
+                    //Character.toLowerCase(s[i+1]);
+                }
+            }
+        }
+        str=s.toString();
+        return str;
     }
 }
