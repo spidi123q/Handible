@@ -17,7 +17,7 @@
     <string name="h6">H6</string>
     <string-array name="file_ext_array">
         <item>PDF</item>
-        <item>HTML</item>
+        <item>WEB</item>
     </string-array>
 
     <!-- TODO: Remove or change this placeholder text -->

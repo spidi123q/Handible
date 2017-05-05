@@ -25,8 +25,10 @@ import android.widget.Toast;
 import com.pdfcrowd.Client;
 import com.pdfcrowd.PdfcrowdError;
 
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -268,8 +270,12 @@ public class TextEditor extends AppCompatActivity {
                         Spinner spinner = (Spinner)f.findViewById(R.id.spinner_file_ext);
                         EditText fileNameEditText = (EditText)f.findViewById(R.id.filename_save_dialog_editext);
                         Log.e(TAG, spinner.getSelectedItem().toString() );
+                        final String html = mEditor.getHtml();
                         String selection = spinner.getSelectedItem().toString();
                         final String filename =  fileNameEditText.getText().toString();
+                        final String path =
+                                Environment.getExternalStoragePublicDirectory(
+                                        Environment.DIRECTORY_DOCUMENTS).toString();
 
                         if (selection.equalsIgnoreCase("pdf")){
                             new Thread(new Runnable() {
@@ -285,12 +291,9 @@ public class TextEditor extends AppCompatActivity {
 
                                         // convert an HTML string and store the PDF into a byte array
                                         ByteArrayOutputStream memStream  = new ByteArrayOutputStream();
-                                        String html = mEditor.getHtml();
                                         client.convertHtml(html, memStream);
                                         try(OutputStream outputStream = new
-                                                FileOutputStream(
-                                                Environment.getExternalStoragePublicDirectory(
-                                                        Environment.DIRECTORY_DOCUMENTS).toString()+"/"+filename+".pdf")) {
+                                                FileOutputStream(path+"/"+filename+".pdf")) {
                                             memStream.writeTo(outputStream);
                                         }catch (IOException e){
                                             System.out.println(e);
@@ -305,6 +308,19 @@ public class TextEditor extends AppCompatActivity {
                                     }
                                 }
                             }).start();
+                        }
+                        else if(selection.equalsIgnoreCase("web")){
+                            try {
+                                BufferedWriter out = new BufferedWriter(new FileWriter(path+"/"+filename+".html"));
+                                out.write(html);  //Replace with the string
+                                //you are trying to write
+                                out.close();
+                            }
+                            catch (IOException e)
+                            {
+                                System.out.println("Exception "+e);
+
+                            }
                         }
                     }
                 })
