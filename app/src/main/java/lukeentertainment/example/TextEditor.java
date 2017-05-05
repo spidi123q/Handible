@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Environment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -16,9 +17,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.pdfcrowd.Client;
+import com.pdfcrowd.PdfcrowdError;
+
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
 import jp.wasabeef.richeditor.RichEditor;
 
@@ -253,10 +263,49 @@ public class TextEditor extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
                         // sign in the user ...
-                        String TAG = "Dialog save";
+                        final String TAG = "Dialog save";
                         Dialog f = (Dialog)dialog;
                         Spinner spinner = (Spinner)f.findViewById(R.id.spinner_file_ext);
+                        EditText fileNameEditText = (EditText)f.findViewById(R.id.filename_save_dialog_editext);
                         Log.e(TAG, spinner.getSelectedItem().toString() );
+                        String selection = spinner.getSelectedItem().toString();
+                        final String filename =  fileNameEditText.getText().toString();
+
+                        if (selection.equalsIgnoreCase("pdf")){
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try
+                                    {
+                                        FileOutputStream fileStream;
+
+                                        // create an API client instance
+                                        Client client = new Client("spidi123q", "bdc83ed8f96afb177e8d7749bece518d");
+
+
+                                        // convert an HTML string and store the PDF into a byte array
+                                        ByteArrayOutputStream memStream  = new ByteArrayOutputStream();
+                                        String html = mEditor.getHtml();
+                                        client.convertHtml(html, memStream);
+                                        try(OutputStream outputStream = new
+                                                FileOutputStream(
+                                                Environment.getExternalStoragePublicDirectory(
+                                                        Environment.DIRECTORY_DOCUMENTS).toString()+"/"+filename+".pdf")) {
+                                            memStream.writeTo(outputStream);
+                                        }catch (IOException e){
+                                            System.out.println(e);
+                                        }
+
+                                        // retrieve the number of credits in your account
+                                        Integer ncredits = client.numTokens();
+                                        Log.e(TAG, "Credits remaining: "+ncredits);
+                                    }
+                                    catch(PdfcrowdError why) {
+                                        System.err.println(why.getMessage());
+                                    }
+                                }
+                            }).start();
+                        }
                     }
                 })
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
