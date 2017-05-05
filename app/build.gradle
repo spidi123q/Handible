@@ -38,13 +38,11 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-
-
     compile project(':openCVLibrary249')
+    compile files('lib/pdfcrowd-2.6-java/pdfcrowd.jar')
     compile 'com.android.support:appcompat-v7:25.2.0'
     compile 'com.android.support:design:25.2.0'
     compile 'com.theartofdev.edmodo:android-image-cropper:2.3.1'

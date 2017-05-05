@@ -31,6 +31,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.pdfcrowd.Client;
+import com.pdfcrowd.PdfcrowdError;
+
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCameraView;
@@ -42,12 +45,14 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -144,6 +149,41 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+        /*
+         new Thread(new Runnable() {
+             @Override
+             public void run() {
+                 try
+                 {
+                     FileOutputStream fileStream;
+
+                     // create an API client instance
+                     Client client = new Client("spidi123q", "bdc83ed8f96afb177e8d7749bece518d");
+
+
+                     // convert an HTML string and store the PDF into a byte array
+                     ByteArrayOutputStream memStream  = new ByteArrayOutputStream();
+                     String html = "<html><body>In-memory HTML.</body></html>";
+                     client.convertHtml(html, memStream);
+                     try(OutputStream outputStream = new
+                             FileOutputStream(
+                                     Environment.getExternalStoragePublicDirectory(
+                                             Environment.DIRECTORY_DOCUMENTS).toString()+"/aa.pdf")) {
+                         memStream.writeTo(outputStream);
+                     }catch (IOException e){
+                         System.out.println(e);
+                     }
+
+                     // retrieve the number of credits in your account
+                     Integer ncredits = client.numTokens();
+                     Log.e(TAG, "Credits remaining: "+ncredits);
+                 }
+                 catch(PdfcrowdError why) {
+                     System.err.println(why.getMessage());
+                 }
+             }
+         }).start();
+        */
 
 
     }

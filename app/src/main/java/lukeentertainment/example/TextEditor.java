@@ -1,16 +1,24 @@
 package lukeentertainment.example;
 
 import android.app.Activity;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import jp.wasabeef.richeditor.RichEditor;
 
@@ -211,4 +219,52 @@ public class TextEditor extends AppCompatActivity {
         });
 
     }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.text_editor_menu, menu);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent;
+        switch (item.getItemId()) {
+            case R.id.action_save_file:
+                open(getCurrentFocus());
+                return true;
+
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+
+        }
+    }
+    public void open(View view){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        // Get the layout inflater
+        LayoutInflater inflater = this.getLayoutInflater();
+
+        // Inflate and set the layout for the dialog
+        // Pass null as the parent view because its going in the dialog layout
+        builder.setView(inflater.inflate(R.layout.dialog_save_file, null))
+                // Add action buttons
+                .setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        // sign in the user ...
+                        String TAG = "Dialog save";
+                        Dialog f = (Dialog)dialog;
+                        Spinner spinner = (Spinner)f.findViewById(R.id.spinner_file_ext);
+                        Log.e(TAG, spinner.getSelectedItem().toString() );
+                    }
+                })
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                    }
+                });
+          builder.create().show();
+    }
+
 }
+
