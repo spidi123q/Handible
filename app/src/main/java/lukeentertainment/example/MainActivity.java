@@ -1,6 +1,7 @@
 package lukeentertainment.example;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -59,6 +60,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import io.github.yavski.fabspeeddial.FabSpeedDial;
+import io.github.yavski.fabspeeddial.SimpleMenuListenerAdapter;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST_FOR_TRAIN = 25 ;
@@ -107,83 +111,55 @@ public class MainActivity extends AppCompatActivity {
         db=new DatabaseOperations(getApplicationContext());
         lyProduct=(ListView)findViewById(R.id.list_view);
         refreshList();
-
-        fab=(FloatingActionButton)findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        FabSpeedDial fabSpeedDialHome = (FabSpeedDial) findViewById(R.id.fab_speed_dial);
+        fabSpeedDialHome.setMenuListener(new SimpleMenuListenerAdapter() {
             @Override
-            public void onClick(View v) {
-                LayoutInflater li = LayoutInflater.from(getApplicationContext());
-                View promptsView = li.inflate(R.layout.project_prompt, null);
+            public boolean onMenuItemSelected(MenuItem menuItem) {
+                //TODO: Start some activity
+                Intent intent;
+                switch (menuItem.getItemId()) {
+                    case R.id.action_add_project:
+                        LayoutInflater li = LayoutInflater.from(getApplicationContext());
+                        View promptsView = li.inflate(R.layout.project_prompt, null);
 
-                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
 
-                alertDialogBuilder.setView(promptsView);
+                        alertDialogBuilder.setView(promptsView);
 
-                final EditText userInput = (EditText) promptsView
-                        .findViewById(R.id.new_proj_edittext);
-                alertDialogBuilder
-                        .setCancelable(false)
-                        .setPositiveButton("Done",
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog,int id) {
+                        final EditText userInput = (EditText) promptsView
+                                .findViewById(R.id.new_proj_edittext);
+                        alertDialogBuilder
+                                .setCancelable(false)
+                                .setPositiveButton("Done",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog,int id) {
 
-                                        if (!userInput.getText().toString().isEmpty()) {
-                                            String name=userInput.getText().toString();
-                                            DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm:ss");
-                                            String date = df.format(Calendar.getInstance().getTime());
-                                            db.addRowProjectList(name,date,0,"null");
-                                            //Toast.makeText(getBaseContext(), "Registerd Successfully", Toast.LENGTH_SHORT).show();
-                                            refreshList();
-                                        }
+                                                if (!userInput.getText().toString().isEmpty()) {
+                                                    String name=userInput.getText().toString();
+                                                    DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm:ss");
+                                                    String date = df.format(Calendar.getInstance().getTime());
+                                                    db.addRowProjectList(name,date,0,"null");
+                                                    //Toast.makeText(getBaseContext(), "Registerd Successfully", Toast.LENGTH_SHORT).show();
+                                                    refreshList();
+                                                }
 
-                                    }
-                                })
-                        .setNegativeButton("Cancel",
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int id) {
-                                        dialog.cancel();
-                                    }
-                                });
-                AlertDialog alertDialog = alertDialogBuilder.create();
-                alertDialog.show();
+                                            }
+                                        })
+                                .setNegativeButton("Cancel",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int id) {
+                                                dialog.cancel();
+                                            }
+                                        });
+                        AlertDialog alertDialog = alertDialogBuilder.create();
+                        alertDialog.show();
+                        return true;
 
+                }
+                return false;
             }
         });
-        /*
-         new Thread(new Runnable() {
-             @Override
-             public void run() {
-                 try
-                 {
-                     FileOutputStream fileStream;
 
-                     // create an API client instance
-                     Client client = new Client("spidi123q", "bdc83ed8f96afb177e8d7749bece518d");
-
-
-                     // convert an HTML string and store the PDF into a byte array
-                     ByteArrayOutputStream memStream  = new ByteArrayOutputStream();
-                     String html = "<html><body>In-memory HTML.</body></html>";
-                     client.convertHtml(html, memStream);
-                     try(OutputStream outputStream = new
-                             FileOutputStream(
-                                     Environment.getExternalStoragePublicDirectory(
-                                             Environment.DIRECTORY_DOCUMENTS).toString()+"/aa.pdf")) {
-                         memStream.writeTo(outputStream);
-                     }catch (IOException e){
-                         System.out.println(e);
-                     }
-
-                     // retrieve the number of credits in your account
-                     Integer ncredits = client.numTokens();
-                     Log.e(TAG, "Credits remaining: "+ncredits);
-                 }
-                 catch(PdfcrowdError why) {
-                     System.err.println(why.getMessage());
-                 }
-             }
-         }).start();
-        */
 
 
     }
