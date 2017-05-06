@@ -16,6 +16,7 @@
     <string name="h5">H5</string>
     <string name="h6">H6</string>
     <string name="send">Send</string>
+    <string name="send_msg">Send Message</string>
     <string name="receive">Receive</string>
     <string name="new_project">New Project</string>
     <string-array name="file_ext_array">
