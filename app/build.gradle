@@ -17,7 +17,7 @@ android {
         jni.srcDirs = [] //disable automatic ndk-build call
     }
     task ndkBuild(type: Exec, description: 'Compile JNI source via NDK') {
-        commandLine "F:/NDK/android-ndk-r13b/ndk-build.cmd",
+        commandLine "/mnt/aeadf288-3a45-48ac-a5c2-c08a869bd513/Android/android-ndk-r14/ndk-build",
                 'NDK_PROJECT_PATH=build/intermediates/ndk',
                 'NDK_LIBS_OUT=src/main/jniLibs',
                 'APP_BUILD_SCRIPT=src/main/jni/Android.mk',
@@ -38,13 +38,11 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-
-
     compile project(':openCVLibrary249')
+    compile files('lib/pdfcrowd-2.6-java/pdfcrowd.jar')
     compile 'com.android.support:appcompat-v7:25.2.0'
     compile 'com.android.support:design:25.2.0'
     compile 'com.theartofdev.edmodo:android-image-cropper:2.3.1'

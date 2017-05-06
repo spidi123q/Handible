@@ -3,6 +3,8 @@
     <string name="import_gal">Gallery</string>
     <string name="import_cam">Camera</string>
     <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="filename">Enter file name</string>
     <string name="edit">Edit</string>
     <string name="title_activity_splash_screen">SplashScreen</string>
     <string name="dummy_button">Dummy Button</string>
@@ -13,4 +15,20 @@
     <string name="h4">H4</string>
     <string name="h5">H5</string>
     <string name="h6">H6</string>
+    <string name="send">Send</string>
+    <string name="send_msg">Send Message</string>
+    <string name="receive">Receive</string>
+    <string name="new_project">New Project</string>
+    <string-array name="file_ext_array">
+        <item>PDF</item>
+        <item>WEB</item>
+    </string-array>
+    <integer-array name="fab_menu_item_colors">
+        <item>@android:color/holo_green_dark</item>
+        <item>@android:color/holo_purple</item>
+        <item>@android:color/holo_red_dark</item>
+    </integer-array>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

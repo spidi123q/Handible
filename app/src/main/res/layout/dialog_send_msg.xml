@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="1">
+
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_weight="0.17"
+        android:background="@color/colorPrimary"
+        android:gravity="center"
+        android:text="@string/send_msg"
+        android:textAppearance="@android:style/TextAppearance.DeviceDefault.WindowTitle"
+        android:textColor="@color/colorWhite"
+        tools:text="@string/send" />
+
+    <EditText
+        android:id="@+id/editTextSendMsg"
+        android:layout_width="match_parent"
+        android:layout_height="103dp"
+        android:ems="10"
+        android:inputType="textMultiLine"
+        android:layout_weight="0.16" />
+</LinearLayout>

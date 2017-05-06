@@ -20,19 +20,22 @@
 
     </ListView>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
+
+    <io.github.yavski.fabspeeddial.FabSpeedDial
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:clickable="true"
-        android:src="@drawable/ic_add_black_24dp"
-        app:layout_anchorGravity="bottom|right|end"
-        app:backgroundTint="@color/colorAccent"
-        app:rippleColor="#FFF"
-        android:layout_marginBottom="16dp"
-        android:layout_marginRight="16dp"
+        android:layout_gravity="end"
+        app:fabMenu="@menu/speedi_dial_home"
+        app:miniFabBackgroundTint="@android:color/white"
+        app:miniFabDrawableTint="@color/colorWhite"
+        app:miniFabTitleTextColor="?attr/colorPrimaryDark"
+        app:fabDrawable="@drawable/ic_apps_black_24dp"
+        android:id="@+id/fab_speed_dial"
+        app:fabGravity="bottom_end"
+        app:miniFabTitleTextColorList="@array/fab_menu_item_colors"
+        app:miniFabBackgroundTintList="@array/fab_menu_item_colors"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginEnd="11dp" />
+        />
 
 </RelativeLayout>

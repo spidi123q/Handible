@@ -1,6 +1,8 @@
 package lukeentertainment.example;
 
 import android.app.Activity;
+import android.app.Dialog;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -28,8 +30,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.pdfcrowd.Client;
+import com.pdfcrowd.PdfcrowdError;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -42,17 +48,23 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+
+import io.github.yavski.fabspeeddial.FabSpeedDial;
+import io.github.yavski.fabspeeddial.SimpleMenuListenerAdapter;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -102,48 +114,63 @@ public class MainActivity extends AppCompatActivity {
         db=new DatabaseOperations(getApplicationContext());
         lyProduct=(ListView)findViewById(R.id.list_view);
         refreshList();
-
-        fab=(FloatingActionButton)findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        FabSpeedDial fabSpeedDialHome = (FabSpeedDial) findViewById(R.id.fab_speed_dial);
+        fabSpeedDialHome.setMenuListener(new SimpleMenuListenerAdapter() {
             @Override
-            public void onClick(View v) {
-                LayoutInflater li = LayoutInflater.from(getApplicationContext());
-                View promptsView = li.inflate(R.layout.project_prompt, null);
+            public boolean onMenuItemSelected(MenuItem menuItem) {
+                //TODO: Start some activity
+                Intent intent;
+                switch (menuItem.getItemId()) {
+                    case R.id.action_add_project:
+                        LayoutInflater li = LayoutInflater.from(getApplicationContext());
+                        View promptsView = li.inflate(R.layout.project_prompt, null);
 
-                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
 
-                alertDialogBuilder.setView(promptsView);
+                        alertDialogBuilder.setView(promptsView);
 
-                final EditText userInput = (EditText) promptsView
-                        .findViewById(R.id.new_proj_edittext);
-                alertDialogBuilder
-                        .setCancelable(false)
-                        .setPositiveButton("Done",
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog,int id) {
+                        final EditText userInput = (EditText) promptsView
+                                .findViewById(R.id.new_proj_edittext);
+                        alertDialogBuilder
+                                .setCancelable(false)
+                                .setPositiveButton("Done",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog,int id) {
 
-                                        if (!userInput.getText().toString().isEmpty()) {
-                                            String name=userInput.getText().toString();
-                                            DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm:ss");
-                                            String date = df.format(Calendar.getInstance().getTime());
-                                            db.addRowProjectList(name,date,0,"null");
-                                            //Toast.makeText(getBaseContext(), "Registerd Successfully", Toast.LENGTH_SHORT).show();
-                                            refreshList();
-                                        }
+                                                if (!userInput.getText().toString().isEmpty()) {
+                                                    String name=userInput.getText().toString();
+                                                    DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm:ss");
+                                                    String date = df.format(Calendar.getInstance().getTime());
+                                                    db.addRowProjectList(name,date,0,"null");
+                                                    //Toast.makeText(getBaseContext(), "Registerd Successfully", Toast.LENGTH_SHORT).show();
+                                                    refreshList();
+                                                }
 
-                                    }
-                                })
-                        .setNegativeButton("Cancel",
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int id) {
-                                        dialog.cancel();
-                                    }
-                                });
-                AlertDialog alertDialog = alertDialogBuilder.create();
-                alertDialog.show();
+                                            }
+                                        })
+                                .setNegativeButton("Cancel",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int id) {
+                                                dialog.cancel();
+                                            }
+                                        });
+                        AlertDialog alertDialog = alertDialogBuilder.create();
+                        alertDialog.show();
+                        return true;
 
+                    case R.id.action_send_msg :
+                        dialogSend(getCurrentFocus());
+                        break;
+
+                    case R.id.action_receive_msg :
+                        dialogReceive(getCurrentFocus());
+                        break;
+
+                }
+                return false;
             }
         });
+
 
 
     }
@@ -285,6 +312,55 @@ public class MainActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
 
         }
+    }
+    public void dialogSend(View view){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        // Get the layout inflater
+        LayoutInflater inflater = this.getLayoutInflater();
+
+        // Inflate and set the layout for the dialog
+        // Pass null as the parent view because its going in the dialog layout
+        builder.setView(inflater.inflate(R.layout.dialog_send_msg, null))
+                // Add action buttons
+                .setPositiveButton(R.string.send, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        final String TAG = "Dialog send msg";
+                        Dialog f = (Dialog)dialog;
+                        EditText msgEditText = (EditText)f.findViewById(R.id.editTextSendMsg);
+                        String sendMsg = msgEditText.getText().toString();
+                        Log.e(TAG, "onClick: "+sendMsg );
+
+                    }
+                })
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                    }
+                });
+        builder.create().show();
+    }
+    public void dialogReceive(View view){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        // Get the layout inflater
+        LayoutInflater inflater = this.getLayoutInflater();
+
+        // Inflate and set the layout for the dialog
+        // Pass null as the parent view because its going in the dialog layout
+        builder.setView(inflater.inflate(R.layout.dialog_save_file, null))
+                // Add action buttons
+                .setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        final String TAG = "Dialog receive msg";
+                        Dialog f = (Dialog)dialog;
+
+                    }
+                })
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                    }
+                });
+        builder.create().show();
     }
 
 

@@ -1,16 +1,36 @@
 package lukeentertainment.example;
 
 import android.app.Activity;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Environment;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.pdfcrowd.Client;
+import com.pdfcrowd.PdfcrowdError;
+
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStream;
 
 import jp.wasabeef.richeditor.RichEditor;
 
@@ -211,4 +231,105 @@ public class TextEditor extends AppCompatActivity {
         });
 
     }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.text_editor_menu, menu);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent;
+        switch (item.getItemId()) {
+            case R.id.action_save_file:
+                open(getCurrentFocus());
+                return true;
+
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+
+        }
+    }
+    public void open(View view){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        // Get the layout inflater
+        LayoutInflater inflater = this.getLayoutInflater();
+
+        // Inflate and set the layout for the dialog
+        // Pass null as the parent view because its going in the dialog layout
+        builder.setView(inflater.inflate(R.layout.dialog_save_file, null))
+                // Add action buttons
+                .setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        // sign in the user ...
+                        final String TAG = "Dialog save";
+                        Dialog f = (Dialog)dialog;
+                        Spinner spinner = (Spinner)f.findViewById(R.id.spinner_file_ext);
+                        EditText fileNameEditText = (EditText)f.findViewById(R.id.filename_save_dialog_editext);
+                        Log.e(TAG, spinner.getSelectedItem().toString() );
+                        final String html = mEditor.getHtml();
+                        String selection = spinner.getSelectedItem().toString();
+                        final String filename =  fileNameEditText.getText().toString();
+                        final String path =
+                                Environment.getExternalStoragePublicDirectory(
+                                        Environment.DIRECTORY_DOCUMENTS).toString();
+
+                        if (selection.equalsIgnoreCase("pdf")){
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try
+                                    {
+                                        FileOutputStream fileStream;
+
+                                        // create an API client instance
+                                        Client client = new Client("spidi123q", "bdc83ed8f96afb177e8d7749bece518d");
+
+
+                                        // convert an HTML string and store the PDF into a byte array
+                                        ByteArrayOutputStream memStream  = new ByteArrayOutputStream();
+                                        client.convertHtml(html, memStream);
+                                        try(OutputStream outputStream = new
+                                                FileOutputStream(path+"/"+filename+".pdf")) {
+                                            memStream.writeTo(outputStream);
+                                        }catch (IOException e){
+                                            System.out.println(e);
+                                        }
+
+                                        // retrieve the number of credits in your account
+                                        Integer ncredits = client.numTokens();
+                                        Log.e(TAG, "Credits remaining: "+ncredits);
+                                    }
+                                    catch(PdfcrowdError why) {
+                                        System.err.println(why.getMessage());
+                                    }
+                                }
+                            }).start();
+                        }
+                        else if(selection.equalsIgnoreCase("web")){
+                            try {
+                                BufferedWriter out = new BufferedWriter(new FileWriter(path+"/"+filename+".html"));
+                                out.write(html);  //Replace with the string
+                                //you are trying to write
+                                out.close();
+                            }
+                            catch (IOException e)
+                            {
+                                System.out.println("Exception "+e);
+
+                            }
+                        }
+                    }
+                })
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                    }
+                });
+          builder.create().show();
+    }
+
 }
+
