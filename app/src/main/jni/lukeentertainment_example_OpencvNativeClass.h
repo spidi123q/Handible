@@ -35,7 +35,7 @@ extern "C" {
  * Signature: (JLjava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_train
-  (JNIEnv *, jclass, jlong, jstring,jint);
+  (JNIEnv *, jclass, jlong, jstring,jint,jint);
 
 /*
  * Class:     lukeentertainment_example_OpencvNativeClass

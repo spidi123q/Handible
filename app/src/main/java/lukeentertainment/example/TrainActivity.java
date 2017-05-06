@@ -16,13 +16,17 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
+import java.util.Scanner;
 
 public class TrainActivity extends AppCompatActivity {
 
@@ -55,19 +59,35 @@ public class TrainActivity extends AppCompatActivity {
             }
         });
         try {
-            bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-            imageView.setImageBitmap(bitmap);
-            mat=new Mat(bitmap.getWidth(),bitmap.getHeight(), CvType.CV_8UC4);
-            Utils.bitmapToMat(bitmap,mat);
-            File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "MyCameraApp");
-            if (!mediaStorageDir.exists()) {
-                if (!mediaStorageDir.mkdirs()) {
-                    Log.d("MyCameraApp", "failed to create directory");
+
+
+                bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                imageView.setImageBitmap(bitmap);
+                mat=new Mat(bitmap.getWidth(),bitmap.getHeight(), CvType.CV_8UC4);
+                Utils.bitmapToMat(bitmap,mat);
+                File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "MyCameraApp");
+                if (!mediaStorageDir.exists()) {
+                    if (!mediaStorageDir.mkdirs()) {
+                        Log.d("MyCameraApp", "failed to create directory");
+                    }
                 }
-            }
-            OpencvNativeClass.train(mat.getNativeObjAddr(),mediaStorageDir.getPath()+File.separator,trainAppend);
-            Utils.matToBitmap(mat,bitmap);
-            imageView.setImageBitmap(bitmap);
+                Scanner scanner = new Scanner(new File(mediaStorageDir.getPath()+File.separator+"lastPos.txt"));
+                int [] lastPos = new int [1];
+                int a = 0;
+                while(scanner.hasNextInt())
+                {
+                    lastPos[a++] = scanner.nextInt();
+                }
+                if(trainAppend==0)
+                    lastPos[0]=48;
+                Toast.makeText(getApplicationContext(),""+lastPos[0],Toast.LENGTH_SHORT).show();
+                int lastTrainedItem=OpencvNativeClass.train(mat.getNativeObjAddr(),mediaStorageDir.getPath()+File.separator,trainAppend,lastPos[0]);
+                Toast.makeText(getApplicationContext(), ""+lastTrainedItem, Toast.LENGTH_SHORT).show();
+                Writer wr = new FileWriter(mediaStorageDir.getPath()+File.separator+"lastPos.txt");
+                wr.write(new Integer(lastTrainedItem).toString());
+                wr.close();
+                Utils.matToBitmap(mat,bitmap);
+                imageView.setImageBitmap(bitmap);
 
         } catch (IOException e) {
             e.printStackTrace();

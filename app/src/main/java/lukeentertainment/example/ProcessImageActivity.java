@@ -250,7 +250,7 @@ public class ProcessImageActivity extends AppCompatActivity {
                 OpencvNativeClass.testInput(mat.getNativeObjAddr(),(mediaStorageDir.getPath()+File.separator));
                 str=readStrFromFile(mediaStorageDir.getPath()+File.separator+"data.txt");
                 System.out.println("Text : "+str);
-                str=new StringBuffer(str).reverse().toString();
+                str=new StringBuffer(str).toString();
                 extractedText.setEnabled(true);
                 extractedText.setText(str);
                 Utils.matToBitmap(mat,bitmap);
