@@ -22,6 +22,26 @@
     </ListView>
 
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/enctrain"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:clickable="true"
+        android:layout_marginBottom="16dp"
+        android:layout_marginLeft="16dp"
+        android:src="@drawable/plus"
+        app:backgroundTint="#ffff98"
+        app:rippleColor="#FFF"
+        />
+    <CheckBox
+        android:id="@+id/checkBox3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/list_view"
+        android:layout_alignTop="@+id/enctrain"
+        android:text="CheckBox" />
+
     <io.github.yavski.fabspeeddial.FabSpeedDial
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -37,18 +57,6 @@
         app:miniFabBackgroundTintList="@array/fab_menu_item_colors"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        />
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/enctrain"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:clickable="true"
-        android:layout_marginBottom="16dp"
-        android:layout_marginLeft="16dp"
-        android:src="@drawable/plus"
-        app:backgroundTint="#ffff98"
-        app:rippleColor="#FFF"
         />
 
 

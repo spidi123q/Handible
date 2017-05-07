@@ -31,6 +31,7 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -90,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
     FloatingActionButton enctrain;
     ImageView imageView;
     TextView itt;
+    CheckBox cb;
     int trainAppendTrue=0;
     Mat mRgba, mGray;
 
@@ -129,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
         db=new DatabaseOperations(getApplicationContext());
         lyProduct=(ListView)findViewById(R.id.list_view);
         refreshList();
-
+        cb=(CheckBox)findViewById(R.id.checkBox3);
         enctrain=(FloatingActionButton)findViewById(R.id.enctrain);
         enctrain.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -220,14 +222,25 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE_REQUEST_FOR_TRAIN && resultCode == RESULT_OK && data != null && data.getData() != null) {
+        if (requestCode == PICK_IMAGE_REQUEST_FOR_TRAIN && resultCode == RESULT_OK && data != null && data.getData() != null&&cb.isChecked()) {
 
             Uri uri = data.getData();
             Intent i=new Intent(MainActivity.this,TrainActivity.class);
             i.putExtra("ImageURI",uri);
             i.putExtra("trainoption",trainAppendTrue);
+            i.putExtra("lang",1);
             startActivity(i);
         }
+        if (requestCode == PICK_IMAGE_REQUEST_FOR_TRAIN && resultCode == RESULT_OK && data != null && data.getData() != null&&!cb.isChecked()) {
+
+            Uri uri = data.getData();
+            Intent i=new Intent(MainActivity.this,TrainActivity.class);
+            i.putExtra("ImageURI",uri);
+            i.putExtra("trainoption",trainAppendTrue);
+            i.putExtra("lang",0);
+            startActivity(i);
+        }
+
         if (requestCode == PICK_IMAGE_REQUEST_DECRYPTING && resultCode == RESULT_OK && data != null && data.getData() != null) {
 
             Uri uri = data.getData();

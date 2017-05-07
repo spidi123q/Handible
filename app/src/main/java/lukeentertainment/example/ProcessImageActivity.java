@@ -20,6 +20,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -62,6 +63,7 @@ public class ProcessImageActivity extends AppCompatActivity {
     EditText extractedText;
     Bitmap bitmap,tmp;
     Uri uri;
+    CheckBox cb;
     int position,parentID;
     DatabaseOperations db;
 
@@ -84,6 +86,7 @@ public class ProcessImageActivity extends AppCompatActivity {
         Cursor CR=db.getAlldata();
         CR.moveToPosition(position);
         projectName=CR.getString(1);
+        cb=(CheckBox)findViewById(R.id.checkBox);
 
         imageView=(ImageView)findViewById(R.id.process_iv);
 
@@ -247,8 +250,15 @@ public class ProcessImageActivity extends AppCompatActivity {
                     }
                 }
                 String str="";
-                OpencvNativeClass.testInput(mat.getNativeObjAddr(),(mediaStorageDir.getPath()+File.separator));
-                str=readStrFromFile(mediaStorageDir.getPath()+File.separator+"data.txt");
+                if(!cb.isChecked()){
+                    OpencvNativeClass.testInput(mat.getNativeObjAddr(),(mediaStorageDir.getPath()+File.separator));
+                    str=readStrFromFile(mediaStorageDir.getPath()+File.separator+"data.txt");
+                }
+                else
+                {
+                    OpencvNativeClass.testInputMalayalam(mat.getNativeObjAddr(),(mediaStorageDir.getPath()+File.separator+"Malayalam/"));
+                    str=readStrFromFile(mediaStorageDir.getPath()+File.separator+"Malayalam/"+"data.txt");
+                }
                 System.out.println("Text : "+str);
                 str=new StringBuffer(str).toString();
                 extractedText.setEnabled(true);
