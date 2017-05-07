@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFFF"
+    android:id="@+id/mainLayout"
     tools:context="lukeentertainment.example.MainActivity">
 
     <ListView
@@ -37,5 +38,18 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         />
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/enctrain"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:clickable="true"
+        android:layout_marginBottom="16dp"
+        android:layout_marginLeft="16dp"
+        android:src="@drawable/plus"
+        app:backgroundTint="#ffff98"
+        app:rippleColor="#FFF"
+        />
+
 
 </RelativeLayout>
