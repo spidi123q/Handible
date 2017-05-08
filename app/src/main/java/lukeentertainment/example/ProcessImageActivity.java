@@ -174,7 +174,7 @@ public class ProcessImageActivity extends AppCompatActivity {
         try {
             fos = new FileOutputStream(new File(mediaStorageDir.toString()+"/"+itemNum+".jpg"));
             // Use the compress method on the BitMap object to write image to the OutputStream
-            b.compress(Bitmap.CompressFormat.JPEG,100, fos);
+            b.compress(Bitmap.CompressFormat.PNG,100, fos);
             String imagePath = mediaStorageDir.toString()+"/"+itemNum+".jpg";
             db.addRowContentList(parentID,imagePath);
             Toast.makeText(getApplicationContext(),"Photo Added ",Toast.LENGTH_SHORT).show();
@@ -239,6 +239,7 @@ public class ProcessImageActivity extends AppCompatActivity {
                 return true;
 
             case R.id.action_get_text :
+
                 Utils.matToBitmap(spareMat,bitmap);
                 Utils.bitmapToMat(bitmap,mat);
 

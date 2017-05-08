@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -15,19 +16,23 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.CheckBox;
 import android.widget.GridView;
 import android.widget.Toast;
 
 import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 
@@ -40,9 +45,11 @@ public class PreprocessingActivity extends AppCompatActivity {
     int position;
     ContentValues values;
     DatabaseOperations db;
+
     private static final int PICK_IMAGE_REQUEST_TESTING = 10 ;
     FloatingActionButton gallerFab,cameraFab;
     Uri imageUri;
+    String str="",fullText = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -162,6 +169,110 @@ public class PreprocessingActivity extends AppCompatActivity {
         // respond to users whose devices do not support the crop action
         catch (ActivityNotFoundException anfe) {
         }
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.project_menu, menu);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent;
+        switch (item.getItemId()) {
+            case R.id.action_save_extract_all :
+                fullText = "";
+                Log.e("sdfs", "onOptionsItemSelected: " )
+                ;
+                extractAllText();
+                return true;
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+
+        }
+    }
+
+     public void extractAllText(){
+         String TAG = "DB";
+         Cursor CR=db.getAlldata();
+         CR.moveToPosition(position);
+         int parentId=CR.getInt(0);
+         CR = db.getAlldataFromContentTable(parentId);
+        if (CR.moveToFirst()){
+            Log.e(TAG, "extractAllText: "+CR.getString(2) );
+            getBitmapFile(CR.getString(2));
+            while(CR.moveToNext()){
+                Log.e(TAG, "extractAllText: "+CR.getString(2) );
+                getBitmapFile(CR.getString(2));
+            }
+            Intent i=new Intent(PreprocessingActivity.this,TextEditor.class);
+            i.putExtra("ExtractedText",fullText);
+            startActivity(i);
+        }
+     }
+     void  getBitmapFile(String path){
+
+         Bitmap bitmap = BitmapFactory.decodeFile(path);
+         Mat mat = new Mat(bitmap.getWidth(), bitmap.getHeight(), CvType.CV_8UC4);
+         Utils.bitmapToMat(bitmap,mat);
+         File mediaStorageDir = new File(
+                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "MyCameraApp");
+         if (!mediaStorageDir.exists()) {
+             if (!mediaStorageDir.mkdirs()) {
+                 Log.d("MyCameraApp", "failed to create directory");
+             }
+         }
+
+         if(true){
+
+             OpencvNativeClass.testInput(mat.getNativeObjAddr(),(mediaStorageDir.getPath()+File.separator));
+             str=readStrFromFile(mediaStorageDir.getPath()+File.separator+"data.txt");
+         }
+         else
+         {
+             OpencvNativeClass.testInputMalayalam(mat.getNativeObjAddr(),(mediaStorageDir.getPath()+File.separator+"Malayalam/"));
+             str=readStrFromFile(mediaStorageDir.getPath()+File.separator+"Malayalam/"+"data.txt");
+         }
+         System.out.println("Text : "+str);
+         str+="<br>";
+         fullText += str;
+
+
+
+     }
+
+    private String readStrFromFile(String path) {
+        String result = "";
+        File file = new File(path);
+        if (file.exists()) {
+            //byte[] buffer = new byte[(int) new File(filePath).length()];
+            FileInputStream fis = null;
+            try {
+                //f = new BufferedInputStream(new FileInputStream(filePath));
+                //f.read(buffer);
+
+                fis = new FileInputStream(file);
+                char current;
+                while (fis.available() > 0) {
+                    int curren= (int) fis.read();
+                    System.out.println(""+curren);
+                    result = result + (char)(curren);
+                }
+            } catch (Exception e) {
+                Log.d("TourGuide", e.toString());
+            } finally {
+                if (fis != null)
+                    try {
+                        fis.close();
+                    } catch (IOException ignored) {
+                    }
+            }
+            //result = new String(buffer);
+        }
+
+        return result;
     }
 
 

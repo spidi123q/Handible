@@ -133,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
         refreshList();
         cb=(CheckBox)findViewById(R.id.checkBox3);
         enctrain=(FloatingActionButton)findViewById(R.id.enctrain);
+        enctrain.setVisibility(View.INVISIBLE);
         enctrain.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

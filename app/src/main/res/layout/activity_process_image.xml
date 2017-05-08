@@ -58,7 +58,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignTop="@+id/invert_fab"
-        android:text="CheckBox" />
+        android:text="local language" />
 
 
 </RelativeLayout>

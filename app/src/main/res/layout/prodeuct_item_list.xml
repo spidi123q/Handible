@@ -29,6 +29,7 @@
             android:id="@+id/product_name"
             android:gravity="center_vertical"
             android:text="Name"
+            android:layout_marginLeft="10dp"
             android:layout_weight="0.5" />
         <TextView
             android:layout_width="match_parent"
@@ -36,6 +37,7 @@
             android:id="@+id/project_date"
             android:gravity="center_vertical"
             android:text="date"
+            android:layout_marginLeft="10dp"
             android:layout_weight="0.5" />
 
     </LinearLayout>

@@ -34,13 +34,14 @@
         app:backgroundTint="#ffff98"
         app:rippleColor="#FFF"
         />
+
     <CheckBox
         android:id="@+id/checkBox3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/list_view"
         android:layout_alignTop="@+id/enctrain"
-        android:text="CheckBox" />
+        android:text="local language" />
 
     <io.github.yavski.fabspeeddial.FabSpeedDial
         android:layout_width="wrap_content"

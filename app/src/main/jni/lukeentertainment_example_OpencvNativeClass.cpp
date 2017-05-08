@@ -226,16 +226,20 @@ cv::Mat& mRgb=*(cv::Mat*)addrRgba;
         const jsize len = env->GetStringUTFLength(path);
        const char* strChars = env->GetStringUTFChars(path, (jboolean *)0);
        std::string Result(strChars, len);
-       char classPath[100],imagePath[100],dataPath[100];
+       char classPath[100],imagePath[100],dataPath[100],temp[100];
 
        strcpy(classPath,strChars);
        strcpy(imagePath,strChars);
        strcpy(dataPath,strChars);
+       strcpy(temp,strChars);
+
 
        env->ReleaseStringUTFChars(path, strChars);
         strcat(classPath,"classifications.xml");
         strcat(imagePath,"images.xml");
         strcat(dataPath,"data.txt");
+        strcat(temp,"d.jpg");
+
 
     std::vector<ContourWithData> validContours,validContoursWithData,validContoursWithDataSpe,validContoursWithDataWord,validContoursWithDataLine;         // we will fill these shortly
 
@@ -418,6 +422,7 @@ cv::Mat& mRgb=*(cv::Mat*)addrRgba;
                         cv::Mat matROIFloat;
                         matROIResized.convertTo(matROIFloat, CV_32FC1);             // convert Mat to float, necessary for call to find_nearest
                         float fltCurrentChar =kNearest.find_nearest(matROIFloat.reshape(1,1),1);
+                        __android_log_print(ANDROID_LOG_DEBUG, "akjfbadkjf","%d",fltCurrentChar);
                        std::wofstream out(dataPath,std::ios::out|std::ios::app);
                         out<<wchar_t(int(fltCurrentChar));
                         out.close();
@@ -429,6 +434,8 @@ cv::Mat& mRgb=*(cv::Mat*)addrRgba;
         }
     }
     mRgb=testingNumbers;
+    imwrite(temp,testingNumbers);
+
 
     return 1;
     }
