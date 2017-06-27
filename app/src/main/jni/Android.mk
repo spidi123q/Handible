@@ -4,7 +4,7 @@
 	include $(CLEAR_VARS)
 
 	#opencv
-	OPENCVROOT:= F:/SOFTWARES/NDK/OpenCV-2.4.9-android-sdk
+	OPENCVROOT:= /mnt/aeadf288-3a45-48ac-a5c2-c08a869bd513/Android/OpenCV-2.4.9-android-sdk
 	OPENCV_CAMERA_MODULES:=on
 	OPENCV_INSTALL_MODULES:=on
 	OPENCV_LIB_TYPE:=SHARED

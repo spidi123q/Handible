@@ -764,11 +764,15 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_detectWo
         {
              cv::Rect boundingRect = validContoursWithData[k].boundingRect;
              cv::Mat matSeg = imgTrainingNumbers(boundingRect);
-             char t[1],nameCopy[100];
+             char t[2],nameCopy[100];
              strcpy(nameCopy,namePath);
-             t[0]=char(intChar);
+             t[0]= intChar;
+             t[1] = '\0';
+ __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG","\n %c",t[0]);
              strcat(nameCopy,t);
+              __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG","\n %s",nameCopy);
              strcat(nameCopy,".jpg");
+              __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG","\n %s",nameCopy);
              cv::imwrite(nameCopy, matSeg);
             cv::Mat matROI = imgThresh(boundingRect);
             cv::Mat matROIResized;
