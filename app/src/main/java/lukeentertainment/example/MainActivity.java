@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
         db=new DatabaseOperations(getApplicationContext());
         lyProduct=(ListView)findViewById(R.id.list_view);
         refreshList();
-        cb=(CheckBox)findViewById(R.id.checkBox3);//
+        cb=(CheckBox)findViewById(R.id.checkBox3);
         enctrain=(FloatingActionButton)findViewById(R.id.enctrain);
         enctrain.setVisibility(View.VISIBLE);
         enctrain.setOnClickListener(new View.OnClickListener() {
