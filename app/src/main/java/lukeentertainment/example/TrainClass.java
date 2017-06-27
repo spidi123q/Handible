@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
@@ -68,7 +69,9 @@ public class TrainClass extends AppCompatActivity {
         Window window = activity.getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        window.setStatusBarColor(ContextCompat.getColor(activity, R.color.colorPrimary));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.setStatusBarColor(ContextCompat.getColor(activity, R.color.colorPrimary));
+        }
         initializeViews();
         initializeListeners();
 
@@ -86,11 +89,7 @@ public class TrainClass extends AppCompatActivity {
                 String text=charSetField.getText().toString();
                 if(!TextUtils.isEmpty(text))
                 {
-                    mat=new Mat(bitmap.getWidth(),bitmap.getHeight(), CvType.CV_8UC4);
-                    Utils.bitmapToMat(bitmap,mat);
-                    OpencvNativeClass.trainIndi(mat.getNativeObjAddr(),(mediaStorageDir.getPath()+File.separator),Integer.parseInt(charSetField.getText().toString()));
-                    Utils.matToBitmap(mat,bm);
-                    fullImage.setImageBitmap(bm);
+
                 }
             }
         });

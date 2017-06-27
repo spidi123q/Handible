@@ -55,7 +55,7 @@ JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_decryptT
   (JNIEnv *, jclass,jlong,jstring);
 
 JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_trainIndi
-  (JNIEnv *, jclass,jlong,jstring,jint);
+  (JNIEnv *, jclass,jlong,jstring);
 
 JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_processImage
     (JNIEnv *, jclass,jlong);

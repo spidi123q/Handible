@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
         refreshList();
         cb=(CheckBox)findViewById(R.id.checkBox3);
         enctrain=(FloatingActionButton)findViewById(R.id.enctrain);
-        enctrain.setVisibility(View.INVISIBLE);
+        enctrain.setVisibility(View.VISIBLE);
         enctrain.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -244,6 +244,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (requestCode == PICK_IMAGE_REQUEST_DECRYPTING && resultCode == RESULT_OK && data != null && data.getData() != null) {
 
+
             Uri uri = data.getData();
             try {
 
@@ -275,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
                     i=i+4;
                 }
                 mat.put(0,0,b);
-                Toast.makeText(getApplicationContext(),"Dopne",Toast.LENGTH_SHORT).show();
+
                 File imgFile=new File(
                         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "MyCameraApp/Set");
                 if(!imgFile.exists())
@@ -299,6 +300,10 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     Toast.makeText(getApplicationContext(),"Pin is : "+mainKey,Toast.LENGTH_SHORT).show();
+                    Intent i2=new Intent(MainActivity.this,TextEditor.class);
+                    Log.e("PRoc", "onOptionsItemSelected: "+ str);
+                    i2.putExtra("ExtractedText",mainKey);
+                    startActivity(i2);
                 }
 
             } catch (FileNotFoundException e) {
@@ -462,20 +467,19 @@ public class MainActivity extends AppCompatActivity {
                 });
         builder.create().show();
     }
-    public void dialogReceive(View view){
+    public void dialogReceive(View view,final String pin){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         // Get the layout inflater
         LayoutInflater inflater = this.getLayoutInflater();
 
         // Inflate and set the layout for the dialog
         // Pass null as the parent view because its going in the dialog layout
-        builder.setView(inflater.inflate(R.layout.dialog_save_file, null))
+        builder.setView(inflater.inflate(R.layout.dialog_receive, null))
                 // Add action buttons
                 .setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        final String TAG = "Dialog receive msg";
-                        Dialog f = (Dialog)dialog;
+
 
                     }
                 })
@@ -642,6 +646,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 fos.close();
             } catch (IOException e) {
+
                 e.printStackTrace();
             }
         }

@@ -47,7 +47,7 @@ public class TrainActivity extends AppCompatActivity {
         window.setStatusBarColor(ContextCompat.getColor(activity, R.color.colorPrimary));
 
         Intent i=getIntent();
-        int lang=i.getIntExtra("trainoption",1);
+        int lang=i.getIntExtra("lang",1);
         trainAppend=i.getIntExtra("trainoption",0);
         uri= i.getParcelableExtra("ImageURI");
         imageView=(ImageView)findViewById(R.id.train_image_view);
@@ -59,6 +59,7 @@ public class TrainActivity extends AppCompatActivity {
 
             }
         });
+        Toast.makeText(getApplicationContext(),"qwe",Toast.LENGTH_SHORT).show();
         try {
 
 
@@ -79,18 +80,19 @@ public class TrainActivity extends AppCompatActivity {
                 {
                     lastPos[a++] = scanner.nextInt();
                 }
-                if(trainAppend==0&&lang==1)
+                if(trainAppend==0&&lang==0)
                     lastPos[0]=48;
-                else if(trainAppend==0&&lang==0)
+                else if(trainAppend==0&&lang==1)
                     lastPos[0]=3349;
+
                 Toast.makeText(getApplicationContext(),""+lastPos[0],Toast.LENGTH_SHORT).show();
                 int lastTrainedItem;
-                if(lang==1)
+                if(lang==0)
                     lastTrainedItem=OpencvNativeClass.train(mat.getNativeObjAddr(),mediaStorageDir.getPath()+File.separator,trainAppend,lastPos[0]);
                 else
                     lastTrainedItem=OpencvNativeClass.trainMalayalam(mat.getNativeObjAddr(),mediaStorageDir.getPath()+File.separator+"Malayalam/",trainAppend,lastPos[0]);
 
-            Toast.makeText(getApplicationContext(), ""+lastTrainedItem, Toast.LENGTH_SHORT).show();
+
                 Writer wr = new FileWriter(mediaStorageDir.getPath()+File.separator+"lastPos.txt");
                 wr.write(new Integer(lastTrainedItem).toString());
                 wr.close();

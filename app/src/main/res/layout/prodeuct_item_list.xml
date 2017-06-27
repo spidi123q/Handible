@@ -24,21 +24,24 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/product_name"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/product_name"
+            android:layout_marginLeft="10dp"
+            android:layout_weight="0.5"
             android:gravity="center_vertical"
             android:text="Name"
-            android:layout_marginLeft="10dp"
-            android:layout_weight="0.5" />
+            android:textAppearance="@style/TextAppearance.AppCompat.Widget.ActionMode.Title" />
+
         <TextView
+            android:id="@+id/project_date"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/project_date"
+            android:layout_marginLeft="10dp"
+            android:layout_weight="0.5"
             android:gravity="center_vertical"
             android:text="date"
-            android:layout_marginLeft="10dp"
-            android:layout_weight="0.5" />
+            android:textAppearance="@style/TextAppearance.AppCompat.Button" />
 
     </LinearLayout>
 

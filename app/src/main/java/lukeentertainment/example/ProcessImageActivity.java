@@ -253,6 +253,7 @@ public class ProcessImageActivity extends AppCompatActivity {
                 String str="";
                 if(!cb.isChecked()){
                     OpencvNativeClass.testInput(mat.getNativeObjAddr(),(mediaStorageDir.getPath()+File.separator));
+                    //OpencvNativeClass.trainIndi(mat.getNativeObjAddr(),(mediaStorageDir.getPath()+File.separator));
                     str=readStrFromFile(mediaStorageDir.getPath()+File.separator+"data.txt");
                 }
                 else

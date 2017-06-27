@@ -45,7 +45,7 @@ public class PreprocessingActivity extends AppCompatActivity {
     int position;
     ContentValues values;
     DatabaseOperations db;
-
+    CheckBox cb;
     private static final int PICK_IMAGE_REQUEST_TESTING = 10 ;
     FloatingActionButton gallerFab,cameraFab;
     Uri imageUri;
@@ -64,6 +64,7 @@ public class PreprocessingActivity extends AppCompatActivity {
         position = mIntent.getIntExtra("position",0);
         db=new DatabaseOperations(getApplicationContext());
         refreshList();
+        cb=(CheckBox)findViewById(R.id.checkBox4);
 
         FabSpeedDial fabSpeedDial = (FabSpeedDial) findViewById(R.id.fab_speed_dial);
         fabSpeedDial.setMenuListener(new SimpleMenuListenerAdapter() {
@@ -225,7 +226,7 @@ public class PreprocessingActivity extends AppCompatActivity {
              }
          }
 
-         if(true){
+         if(!cb.isChecked()){
 
              OpencvNativeClass.testInput(mat.getNativeObjAddr(),(mediaStorageDir.getPath()+File.separator));
              str=readStrFromFile(mediaStorageDir.getPath()+File.separator+"data.txt");
