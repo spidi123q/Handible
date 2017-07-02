@@ -265,6 +265,7 @@ public class ProcessImageActivity extends AppCompatActivity {
                 str=new StringBuffer(str).toString();
                 extractedText.setEnabled(true);
                 extractedText.setText(str);
+                Toast.makeText(getApplicationContext(), ""+str.length(), Toast.LENGTH_SHORT).show();
                 Utils.matToBitmap(mat,bitmap);
                 imageView.setImageBitmap(bitmap);
                 Intent i=new Intent(ProcessImageActivity.this,TextEditor.class);
@@ -290,8 +291,7 @@ public class ProcessImageActivity extends AppCompatActivity {
                     //Character.toLowerCase(s[i+1]);
                 }
             }
-        }
-        str=s.toString();
+        }str=s.toString();
         return str;
     }
 }

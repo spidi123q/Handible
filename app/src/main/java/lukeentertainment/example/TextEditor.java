@@ -286,7 +286,7 @@ public class TextEditor extends AppCompatActivity {
                                         FileOutputStream fileStream;
 
                                         // create an API client instance
-                                        Client client = new Client("spidi123q", "bdc83ed8f96afb177e8d7749bece518d");
+                                        Client client = new Client("nakul123q", "737eda9b5653de554d4b8c26ef226dcc");
 
 
                                         // convert an HTML string and store the PDF into a byte array
@@ -307,7 +307,9 @@ public class TextEditor extends AppCompatActivity {
                                         System.err.println(why.getMessage());
                                     }
                                 }
+
                             }).start();
+                            Toast.makeText(TextEditor.this, "File exported to Documents", Toast.LENGTH_SHORT).show();
                         }
                         else if(selection.equalsIgnoreCase("web")){
                             try {

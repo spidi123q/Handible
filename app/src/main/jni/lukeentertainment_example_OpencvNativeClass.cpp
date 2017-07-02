@@ -35,7 +35,21 @@ std::string strFinalString="";
         else
             return 0;
     }
+int decisionTree(int num,Mat m)
+{
+    if(m.rows==m.cols&&num=='l')
+        return '.';
+    if(num=='l')
+    {
 
+        std:: vector<std::vector<cv::Point> > pt;
+        std::vector<cv::Vec4i> hie ;
+        cv::findContours(m,pt,hie,cv::RETR_EXTERNAL,cv::CHAIN_APPROX_SIMPLE);
+        if(pt.size()>1)
+            return 'i';
+    }
+    return num;
+}
 JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_train
   (JNIEnv *env, jclass, jlong addrRgba,jstring path,jint option,jint lastPos){
  cv::Mat& mRgb=*(cv::Mat*)addrRgba;
@@ -286,10 +300,30 @@ cv::Mat& mRgb=*(cv::Mat*)addrRgba;
 
     matThreshCopy = matThresh.clone();
 
-    std::vector<std::vector<cv::Point> > ptContours,ptContoursWord,ptContoursLine,ptContoursSpe;
-    std::vector<cv::Vec4i> v4iHierarchy,v4iHierarchySpe,v4iHierarchyWord,v4iHierarchyLine;
+    std::vector<std::vector<cv::Point> > ptContours,ptContoursWord,ptContoursLine,ptContoursSpe,pt;
+    std::vector<cv::Vec4i> v4iHierarchy,v4iHierarchySpe,v4iHierarchyWord,v4iHierarchyLine,hie;
+    int x=testingNumbers.rows;
+    int y=testingNumbers.cols;
+    int val=x*0.25f;
+
+    Mat dilateElement = Mat::ones(1,val, CV_8UC1);
+    cv::dilate(matThreshCopy,matThreshCopy, dilateElement);
+    lineThresh=matThreshCopy.clone();
+    cv::findContours(matThreshCopy,pt,hie,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
+    __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG","\n\twidth : %d",pt.size());
+    int totalWidth=0,size=pt.size();
+    for (int i = 0; i <pt.size(); i++) {               // for each contour
+        ContourWithData contourWithData;                                                    // instantiate a contour with data object
+        contourWithData.ptContour = pt[i];                                          // assign contour to contour with data
+        contourWithData.boundingRect = cv::boundingRect(contourWithData.ptContour);
+        contourWithData.fltArea = cv::contourArea(contourWithData.ptContour);
+        if(contourWithData.fltArea >MIN_CONTOUR_AREA){
+            totalWidth+=contourWithData.boundingRect.height/size;
+             __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG","\n\totalwidth : %d",totalWidth);
+        }
+    }
+    matThreshCopy=matThresh.clone();
     cv::findContours(matThreshCopy,ptContours,v4iHierarchy,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
-    int totalWidth=0;
     for (int i = 0; i < ptContours.size(); i++) {               // for each contour
         ContourWithData contourWithData;                                                    // instantiate a contour with data object
         contourWithData.ptContour = ptContours[i];                                          // assign contour to contour with data
@@ -297,12 +331,11 @@ cv::Mat& mRgb=*(cv::Mat*)addrRgba;
         contourWithData.fltArea = cv::contourArea(contourWithData.ptContour);               // calculate the contour area
         if(contourWithData.fltArea >MIN_CONTOUR_AREA){
             validContours.push_back(contourWithData);
-            totalWidth+=contourWithData.fltArea;
         }
     }
-    int size=validContours.size();
-    int dilationValue=(float(totalWidth/size))*0.04;
-    Mat elementSpe = Mat::ones(dilationValue,1, CV_8UC1);
+int dilationValue=0;
+
+    Mat elementSpe = Mat::ones(totalWidth/3,1, CV_8UC1);
     cv::dilate(speThresh,speThresh, elementSpe);
     speThreshCopy=speThresh.clone();
     cv::findContours(speThreshCopy,ptContoursSpe,v4iHierarchySpe,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
@@ -335,8 +368,6 @@ cv::Mat& mRgb=*(cv::Mat*)addrRgba;
                 {
                     mx=min(mx,validSpe[k].boundingRect.x);
                     my=min(my,validSpe[k].boundingRect.y);
-                    //mw=max(mw,validSpe[k].boundingRect.width+mx);
-                    //mh=max(mh,validSpe[k].boundingRect.height+my);
                     mw=max(mw,validSpe[k].boundingRect.width+validSpe[k].boundingRect.x);
                     mh=max(mh,validSpe[k].boundingRect.height+my);
                 }
@@ -353,7 +384,7 @@ cv::Mat& mRgb=*(cv::Mat*)addrRgba;
         validContoursWithData=validContours;
     }
 
-    Mat element = Mat::ones(1,dilationValue, CV_8UC1);
+    Mat element = Mat::ones(1,totalWidth/3, CV_8UC1);
     cv::dilate(imgThresh,imgThresh, element);
     imgThresh+=speThresh;
     imgThreshCopy = imgThresh.clone();
@@ -366,8 +397,7 @@ cv::Mat& mRgb=*(cv::Mat*)addrRgba;
                     if(contourWithData.fltArea >MIN_CONTOUR_AREA*dilationValue)
                         validContoursWithDataWord.push_back(contourWithData);
     }
-    Mat kernel = Mat::ones(1,dilationValue*5, CV_8UC1);
-    cv::dilate(lineThresh,lineThresh,kernel);
+
     lineThresh+=speThresh;
     lineThreshCopy = lineThresh.clone();
     cv::findContours(lineThreshCopy,ptContoursLine,v4iHierarchyLine,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
@@ -422,9 +452,9 @@ cv::Mat& mRgb=*(cv::Mat*)addrRgba;
                 cv::Mat matROIFloat;
                 matROIResized.convertTo(matROIFloat, CV_32FC1);             // convert Mat to float, necessary for call to find_nearest
                 float fltCurrentChar =kNearest.find_nearest(matROIFloat.reshape(1,1),3);
-                __android_log_print(ANDROID_LOG_DEBUG, "akjfbadkjf","%d",fltCurrentChar);
+                int num=decisionTree(fltCurrentChar,matROI);
                std::wofstream out(dataPath,std::ios::out|std::ios::app);
-                out<<wchar_t(int(fltCurrentChar));
+                out<<wchar_t(num);
                 out.close();
              }
              std::wofstream out(dataPath,std::ios::out|std::ios::app);
@@ -442,225 +472,7 @@ cv::Mat& mRgb=*(cv::Mat*)addrRgba;
 
 JNIEXPORT jint JNICALL Java_lukeentertainment_example_OpencvNativeClass_trainIndi
 (JNIEnv *env, jclass,jlong addrRgba,jstring path){
-    cv::Mat& mRgb=*(cv::Mat*)addrRgba;
 
-    const jsize len = env->GetStringUTFLength(path);
-    const char* strChars = env->GetStringUTFChars(path, (jboolean *)0);
-    std::string Result(strChars, len);
-    char classPath[100],imagePath[100],dataPath[100],temp[100];
-
-    strcpy(classPath,strChars);
-    strcpy(imagePath,strChars);
-    strcpy(dataPath,strChars);
-    strcpy(temp,strChars);
-
-
-    env->ReleaseStringUTFChars(path, strChars);
-    strcat(classPath,"classifications.xml");
-    strcat(imagePath,"images.xml");
-    strcat(dataPath,"data.txt");
-    strcat(temp,"d.jpg");
-
-
-    std::vector<ContourWithData> validContoursWithDataLine;         // we will fill these shortly
-
-    cv::Mat matClassificationFloats;      // we will read the classification numbers into this variable as though it is a vector
-
-    cv::FileStorage fsClassifications(classPath, cv::FileStorage::READ);        // open the classifications file
-
-    fsClassifications["classifications"] >> matClassificationFloats;      // read classifications section into Mat classifications variable
-    fsClassifications.release();                                        // close the classifications file
-
-    cv::Mat matTrainingImages;         // we will read multiple images into this single image variable as though it is a vector
-
-    cv::FileStorage fsTrainingImages(imagePath, cv::FileStorage::READ);          // open the training images file
-
-    fsTrainingImages["images"] >> matTrainingImages;           // read images section into Mat training images variable
-    fsTrainingImages.release();
-    // close the traning images file
-    cv::KNearest kNearest=cv::KNearest();
-    kNearest.train(matTrainingImages,matClassificationFloats);
-
-
-    cv::Mat testingNumbers =mRgb.clone();
-    cv::Mat thresh;
-    int width=testingNumbers.cols;
-    int height=testingNumbers.rows;
-    cv::cvtColor(testingNumbers,thresh, CV_RGB2GRAY);
-
-    mRgb=thresh;
-    Mat matThresh=thresh.clone();
-    Mat matThreshClone=thresh.clone();
-
-    cv::Mat matThreshCopy;
-
-    std::vector<std::vector<cv::Point> > ptContours,ptContoursLine;
-    std::vector<cv::Vec4i> hie,hieLine;
-
-    Mat lineStructEle;
-    lineStructEle= Mat::ones(1,width*0.25f, CV_8UC1);
-    cv::dilate(matThresh,matThresh,lineStructEle);
-    matThreshCopy = matThresh.clone();
-    cv::findContours(matThreshCopy,ptContours,hie,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
-    int totalWidth=0,size=ptContours.size();
-    for (int i = 0; i < ptContours.size(); i++) {               // for each contour
-        ContourWithData contourWithData;                                                    // instantiate a contour with data object
-        contourWithData.ptContour = ptContours[i];                                          // assign contour to contour with data
-        contourWithData.boundingRect = cv::boundingRect(contourWithData.ptContour);         // get the bounding rect
-        contourWithData.fltArea = cv::contourArea(contourWithData.ptContour);               // calculate the contour area
-        if(contourWithData.fltArea >MIN_CONTOUR_AREA){
-            totalWidth+=contourWithData.boundingRect.height/size;
-        }
-    }
-    lineStructEle= Mat::ones(totalWidth/3,1, CV_8UC1);
-    cv::dilate(matThresh,matThresh,lineStructEle);
-    matThreshCopy = matThresh.clone();
-    cv::findContours(matThreshCopy,ptContoursLine,hieLine,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
-    for (int i = 0; i < ptContoursLine.size(); i++) {               // for each contour
-            ContourWithData contourWithData;                                                    // instantiate a contour with data object
-            contourWithData.ptContour = ptContours[i];                                          // assign contour to contour with data
-            contourWithData.boundingRect = cv::boundingRect(contourWithData.ptContour);         // get the bounding rect
-            contourWithData.fltArea = cv::contourArea(contourWithData.ptContour);               // calculate the contour area
-            if(contourWithData.fltArea >MIN_CONTOUR_AREA){
-                validContoursWithDataLine.push_back(contourWithData);
-            }
-    }
-    lineStructEle= Mat::ones(totalWidth/3,1, CV_8UC1);
-    cv::dilate(matThreshClone,matThreshClone,lineStructEle);
-    Mat matThreshLetter=matThreshClone.clone();
-    lineStructEle= Mat::ones(1,totalWidth/3, CV_8UC1);
-    cv::dilate(matThreshClone,matThreshClone,lineStructEle);
-    std::sort(validContoursWithDataLine.begin(),validContoursWithDataLine.end(), ContourWithData::sortByBoundingRectYPosition);
-    for(int m=0;m<validContoursWithDataLine.size();m++)
-    {
-        Mat line=matThreshClone(validContoursWithDataLine[m].boundingRect);
-        int biasX=validContoursWithDataLine[m].boundingRect.x;
-        int biasY=validContoursWithDataLine[m].boundingRect.y;
-        Mat lineCopy=line.clone();
-        std::vector<ContourWithData> validContoursWithDataWord;
-        std::vector<std::vector<cv::Point> > ptContoursWord;
-        std::vector<cv::Vec4i> hieWord;
-        cv::findContours(lineCopy,ptContoursWord,hieWord,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
-        for (int i = 0; i < ptContoursWord.size(); i++) {               // for each contour
-                ContourWithData contourWithData;                                                    // instantiate a contour with data object
-                contourWithData.ptContour = ptContours[i];                                          // assign contour to contour with data
-                contourWithData.boundingRect = cv::boundingRect(contourWithData.ptContour);
-                contourWithData.boundingRect.x+=biasX;
-                contourWithData.boundingRect.y+=biasY;
-                contourWithData.fltArea = cv::contourArea(contourWithData.ptContour);               // calculate the contour area
-                if(contourWithData.fltArea >MIN_CONTOUR_AREA){
-                    validContoursWithDataWord.push_back(contourWithData);
-                }
-        }
-        std::sort(validContoursWithDataWord.begin(),validContoursWithDataWord.end(), ContourWithData::sortByBoundingRectXPosition);
-        /*for(int j=0;j<validContoursWithDataWord.size();j++)
-        {
-            Mat word=matThreshLetter(validContoursWithDataWord[j].boundingRect);
-            Mat wordCopy=word.clone();
-            int biasX=validContoursWithDataWord[j].boundingRect.x;
-            int biasY=validContoursWithDataWord[j].boundingRect.y;
-            std::vector<ContourWithData> validContoursWithDataLetter;         // we will fill these shortly
-
-            std::vector<std::vector<cv::Point> > ptContoursLetter;
-            std::vector<cv::Vec4i> hieLetter;
-            cv::findContours(wordCopy,ptContoursLetter,hieLetter,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
-            for (int i = 0; i < ptContoursLetter.size(); i++) {               // for each contour
-                    ContourWithData contourWithData;                                                    // instantiate a contour with data object
-                    contourWithData.ptContour = ptContours[i];                                          // assign contour to contour with data
-                    contourWithData.boundingRect = cv::boundingRect(contourWithData.ptContour);         // get the bounding rect
-                    contourWithData.boundingRect.x+=biasX;
-                    contourWithData.boundingRect.y+=biasY;
-                    contourWithData.fltArea = cv::contourArea(contourWithData.ptContour);               // calculate the contour area
-                    if(contourWithData.fltArea >MIN_CONTOUR_AREA){
-                        validContoursWithDataLetter.push_back(contourWithData);
-                    }
-            }
-            std::sort(validContoursWithDataLetter.begin(),validContoursWithDataLetter.end(), ContourWithData::sortByBoundingRectXPosition);
-            for(int k=0;k<validContoursWithDataLetter.size();k++)
-            {
-                Mat letter=matThreshLetter(validContoursWithDataLetter[k].boundingRect);
-                Mat letterCopy=letter.clone();
-                int biasX=validContoursWithDataWord[k].boundingRect.x;
-                int biasY=validContoursWithDataWord[k].boundingRect.y;
-                std::vector<ContourWithData> validContoursWithDataSpe,validContoursWithData,validContours;         // we will fill these shortly
-                std::vector<std::vector<cv::Point> > ptContoursSpe,ptContoursData;
-                std::vector<cv::Vec4i> hieData,hieSpe;
-                cv::findContours(letterCopy,ptContoursSpe,hieSpe,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
-                for (int i = 0; i < ptContoursSpe.size(); i++) {               // for each contour
-                        ContourWithData contourWithData;                                                    // instantiate a contour with data object
-                        contourWithData.ptContour = ptContours[i];                                          // assign contour to contour with data
-                        contourWithData.boundingRect = cv::boundingRect(contourWithData.ptContour);         // get the bounding rect
-                        contourWithData.boundingRect.x+=biasX;
-                        contourWithData.boundingRect.y+=biasY;
-                        contourWithData.fltArea = cv::contourArea(contourWithData.ptContour);               // calculate the contour area
-                        if(contourWithData.fltArea >MIN_CONTOUR_AREA){
-                            validContoursWithDataSpe.push_back(contourWithData);
-                        }
-                }
-                letter=thresh(validContoursWithDataLetter[k].boundingRect);
-                letterCopy=letter.clone();
-                cv::findContours(letterCopy,ptContoursData,hieData,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
-                for (int i = 0; i < ptContoursData.size(); i++) {               // for each contour
-                    ContourWithData contourWithData;                                                    // instantiate a contour with data object
-                    contourWithData.ptContour = ptContours[i];                                          // assign contour to contour with data
-                    contourWithData.boundingRect = cv::boundingRect(contourWithData.ptContour);         // get the bounding rect
-                    contourWithData.boundingRect.x+=biasX;
-                    contourWithData.boundingRect.y+=biasY;
-                    contourWithData.fltArea = cv::contourArea(contourWithData.ptContour);               // calculate the contour area
-                    if(contourWithData.fltArea >MIN_CONTOUR_AREA){
-                        validContours.push_back(contourWithData);
-                    }
-                }
-                if(validContoursWithDataSpe.size()!=validContours.size())
-                {
-                        for(int i=0;i<validContoursWithDataSpe.size();i++)
-                        {
-                            std::vector<ContourWithData> validSpe;
-                           for(int j=0;j<validContours.size();j++)
-                                if(checkBounds(validContoursWithDataSpe[i].boundingRect,validContours[j].boundingRect))
-                                    validSpe.push_back(validContours[j]);
-
-                           int mx=validSpe[0].boundingRect.x,my=validSpe[0].boundingRect.y;
-                            int mw=validSpe[0].boundingRect.width+mx,mh=validSpe[0].boundingRect.height+my;
-                            for(int k=1;k<validSpe.size();k++)
-                            {
-                                mx=min(mx,validSpe[k].boundingRect.x);
-                                my=min(my,validSpe[k].boundingRect.y);
-                                mw=max(mw,validSpe[k].boundingRect.width+validSpe[k].boundingRect.x);
-                                mh=max(mh,validSpe[k].boundingRect.height+my);
-                            }
-
-                            ContourWithData contourWithData;
-                            contourWithData.ptContour=validSpe[0].ptContour;
-                            contourWithData.boundingRect = Rect(Point(mx,my),Point(mw,mh));
-                            validContoursWithData.push_back(contourWithData);
-
-                        }
-                }else
-                {
-                    validContoursWithData=validContours;
-                }
-
-                cv::rectangle(testingNumbers,validContoursWithData[0].boundingRect,cv::Scalar(0, 255, 0),0);
-
-                cv::Mat matROI = thresh(validContoursWithData[0].boundingRect);
-                cv::Mat matROIResized;
-                cv::resize(matROI, matROIResized, cv::Size(RESIZED_IMAGE_WIDTH, RESIZED_IMAGE_HEIGHT));     // resize image, this will be more consistent for recognition and storage
-                cv::Mat matROIFloat;
-                matROIResized.convertTo(matROIFloat, CV_32FC1);             // convert Mat to float, necessary for call to find_nearest
-                float fltCurrentChar =kNearest.find_nearest(matROIFloat.reshape(1,1),3);
-                __android_log_print(ANDROID_LOG_DEBUG, "akjfbadkjf","%d",fltCurrentChar);
-                std::wofstream out(dataPath,std::ios::out|std::ios::app);
-                out<<wchar_t(int(fltCurrentChar));
-                out.close();
-
-
-            }
-        }
-*/
-    }
-
-    mRgb=matThreshClone;
     return 1;
 }
 
